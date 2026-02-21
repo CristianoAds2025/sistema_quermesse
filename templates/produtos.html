@@ -1,0 +1,18 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h3>Produtos</h3>
+<form method="post">
+<input class="form-control mb-2" name="descricao" placeholder="Descrição">
+<input class="form-control mb-2" name="valor" placeholder="Valor">
+<input class="form-control mb-2" name="estoque" placeholder="Estoque">
+<button class="btn btn-primary">Salvar</button>
+</form>
+<hr>
+<table class="table table-bordered">
+<tr><th>ID</th><th>Descrição</th><th>Valor</th><th>Estoque</th></tr>
+{% for p in produtos %}
+<tr><td>{{p[0]}}</td><td>{{p[1]}}</td><td>{{p[2]}}</td><td>{{p[3]}}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

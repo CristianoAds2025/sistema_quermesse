@@ -1,0 +1,14 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h3>Vendas</h3>
+<form method="post">
+<select name="produto" class="form-select mb-2">
+{% for p in produtos %}
+<option value="{{p[0]}}">{{p[1]}}</option>
+{% endfor %}
+</select>
+<input class="form-control mb-2" name="quantidade" placeholder="Quantidade">
+<button class="btn btn-success">Salvar Venda</button>
+</form>
+{% endblock %}

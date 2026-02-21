@@ -1,0 +1,15 @@
+
+{% extends 'base.html' %}
+{% block content %}
+<h3>Relatórios</h3>
+<a href="/relatorio_pdf" class="btn btn-danger">Exportar PDF</a>
+<a href="/relatorio_excel" class="btn btn-success">Exportar Excel</a>
+<hr>
+<h5>Estoque</h5>
+<table class="table">
+<tr><th>Produto</th><th>Estoque</th></tr>
+{% for p in produtos %}
+<tr><td>{{p[1]}}</td><td>{{p[3]}}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}
