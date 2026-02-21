@@ -1,10 +1,21 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<h3>Novo Usuário</h3>
-<form method="post">
-<input class="form-control mb-2" name="usuario" placeholder="Usuário">
-<input type="password" class="form-control mb-2" name="senha" placeholder="Senha">
-<button class="btn btn-success">Cadastrar</button>
-</form>
+
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow p-4">
+
+            <h3 class="text-center mb-4">Novo Usuário</h3>
+
+            <form method="post">
+                <input class="form-control mb-2" name="usuario" placeholder="Usuário">
+                <input type="password" class="form-control mb-2" name="senha" placeholder="Senha">
+                <button class="btn btn-success w-100">Cadastrar</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
 {% endblock %}
