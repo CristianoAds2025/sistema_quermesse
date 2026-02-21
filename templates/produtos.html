@@ -15,7 +15,12 @@
 <table class="table table-bordered">
 <tr><th>ID</th><th>Descrição</th><th>Valor</th><th>Estoque</th></tr>
 {% for p in produtos %}
-<tr><td>{{p[0]}}</td><td>{{p[1]}}</td><td>{{p[2]}}</td><td>{{p[3]}}</td></tr>
+<tr>
+  <td>{{ p.id }}</td>
+  <td>{{ p.descricao }}</td>
+  <td>{{ p.valor }}</td>
+  <td>{{ p.estoque }}</td>
+</tr>
 {% endfor %}
 </table>
 {% endblock %}
