@@ -1,14 +1,36 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<h3>Vendas</h3>
+<h3>Nova Venda</h3>
+
 <form method="post">
-<select name="produto" class="form-select mb-2">
+<select name="produto" class="form-select mb-2" required>
 {% for p in produtos %}
-<option value="{{p[0]}}">{{p[1]}}</option>
+<option value="{{p.id}}" data-valor="{{p.valor}}">
+{{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque}})
+</option>
 {% endfor %}
 </select>
-<input class="form-control mb-2" name="quantidade" placeholder="Quantidade">
+
+<input type="number" id="quantidade" name="quantidade" class="form-control mb-2" placeholder="Quantidade" required>
+
+<input type="text" id="total" class="form-control mb-2" placeholder="Total" readonly>
+
 <button class="btn btn-success">Salvar Venda</button>
 </form>
+
+<script>
+const select = document.querySelector("select");
+const quantidade = document.getElementById("quantidade");
+const total = document.getElementById("total");
+
+function calcular(){
+  const valor = select.options[select.selectedIndex].dataset.valor;
+  total.value = (valor * quantidade.value).toFixed(2);
+}
+
+select.addEventListener("change", calcular);
+quantidade.addEventListener("input", calcular);
+</script>
+
 {% endblock %}
