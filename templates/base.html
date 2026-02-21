@@ -12,9 +12,9 @@
 <nav class="navbar navbar-dark bg-primary">
   <div class="container-fluid">
     <span class="navbar-brand">Sistema Quermesse</span>
-    {% if session.usuario %}
-      <a href="/" class="btn btn-light btn-sm">Sair</a>
-    {% endif %}
+{% if session.get('usuario') %}
+    <a href="/logout" class="btn btn-danger">Sair</a>
+{% endif %}
   </div>
 </nav>
 
