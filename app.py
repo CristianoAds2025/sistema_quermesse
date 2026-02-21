@@ -90,7 +90,7 @@ def produtos():
 
     if request.method == "POST":
         descricao = request.form["descricao"]
-        valor = float(request.form["valor"])
+        valor = float(request.form["valor"].replace(",", "."))
         estoque = int(request.form["estoque"])
 
         c.execute("INSERT INTO produtos (descricao, valor, estoque) VALUES (%s,%s,%s)",
