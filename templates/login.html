@@ -1,11 +1,25 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<h3>Login</h3>
-<form method="post" action="/autenticar">
-<input class="form-control mb-2" name="usuario" placeholder="Usuário">
-<input type="password" class="form-control mb-2" name="senha" placeholder="Senha">
-<button class="btn btn-primary">Entrar</button>
-<a href="/cadastro" class="btn btn-link">Novo Cadastro</a>
-</form>
+
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow p-4">
+            <h3 class="text-center mb-4">Login</h3>
+
+            <form method="post" action="/autenticar">
+                <input class="form-control mb-3" name="usuario" placeholder="Usuário">
+
+                <input type="password" class="form-control mb-3" name="senha" placeholder="Senha">
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary">Entrar</button>
+                    <a href="/cadastro" class="btn btn-outline-secondary">Novo Cadastro</a>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
 {% endblock %}
