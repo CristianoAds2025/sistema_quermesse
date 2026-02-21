@@ -5,6 +5,15 @@
 <div class="container vh-100 d-flex justify-content-center align-items-center">
     <div class="col-12 col-sm-8 col-md-6 col-lg-4">
         <div class="card shadow p-4">
+
+            <!-- Logo -->
+            <div class="text-center mb-3">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" 
+                     alt="Logo" 
+                     class="img-fluid"
+                     style="max-height: 120px;">
+            </div>
+
             <h3 class="text-center mb-4">Login</h3>
 
             <form method="post" action="/autenticar">
