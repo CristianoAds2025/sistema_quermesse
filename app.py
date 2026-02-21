@@ -63,6 +63,17 @@ def cadastro():
 
         conn = conectar()
         c = conn.cursor()
+
+        # 🔎 Verifica se usuário já existe
+        c.execute("SELECT id FROM usuarios WHERE usuario = %s", (usuario,))
+        usuario_existente = c.fetchone()
+
+        if usuario_existente:
+            conn.close()
+            flash("Usuário já cadastrado!", "danger")
+            return redirect("/cadastro")
+
+        # ✅ Se não existir, cadastra
         c.execute("INSERT INTO usuarios (usuario, senha) VALUES (%s,%s)", (usuario, senha))
         conn.commit()
         conn.close()
