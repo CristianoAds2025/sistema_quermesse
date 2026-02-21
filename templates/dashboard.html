@@ -1,8 +1,29 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<h3>Dashboard</h3>
-<a href="/produtos" class="btn btn-primary">Produtos</a>
-<a href="/vendas" class="btn btn-success">Vendas</a>
-<a href="/relatorios" class="btn btn-info">Relatórios</a>
+
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow p-4 text-center">
+
+            <h3 class="mb-4">Dashboard</h3>
+
+            <div class="d-grid gap-3">
+                <a href="/produtos" class="btn btn-primary btn-lg py-3">
+                    Produtos
+                </a>
+
+                <a href="/vendas" class="btn btn-success btn-lg py-3">
+                    Vendas
+                </a>
+
+                <a href="/relatorios" class="btn btn-info btn-lg py-3 text-white">
+                    Relatórios
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 {% endblock %}
