@@ -32,6 +32,7 @@ def conectar():
 # =========================
 @app.route("/")
 def login():
+    session.pop('usuario', None)  # remove usuário da sessão
     return render_template("login.html")
 
 @app.route("/autenticar", methods=["POST"])
