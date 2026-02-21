@@ -1,30 +1,30 @@
 
-from flask import Flask, render_template, request, redirect, session, send_file
-import sqlite3
+from flask import Flask, render_template, request, redirect, session, send_file, flash
+import mysql.connector
+import os
 from datetime import datetime
 from reportlab.platypus import SimpleDocTemplate, Table
 from reportlab.lib.pagesizes import A4
 from openpyxl import Workbook
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
 
-DB = "database.db"
-
+# =========================
+# CONEXÃO MYSQL
+# =========================
 def conectar():
-    return sqlite3.connect(DB)
+    return mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
 
-def init_db():
-    conn = conectar()
-    c = conn.cursor()
-    c.execute("CREATE TABLE IF NOT EXISTS usuarios (id INTEGER PRIMARY KEY AUTOINCREMENT, usuario TEXT, senha TEXT)")
-    c.execute("CREATE TABLE IF NOT EXISTS produtos (id INTEGER PRIMARY KEY AUTOINCREMENT, descricao TEXT, valor REAL, estoque INTEGER)")
-    c.execute("CREATE TABLE IF NOT EXISTS vendas (id INTEGER PRIMARY KEY AUTOINCREMENT, produto_id INTEGER, quantidade INTEGER, valor_total REAL, data TEXT)")
-    conn.commit()
-    conn.close()
-
-init_db()
-
+# =========================
+# LOGIN
+# =========================
 @app.route("/")
 def login():
     return render_template("login.html")
@@ -33,81 +33,146 @@ def login():
 def autenticar():
     usuario = request.form["usuario"]
     senha = request.form["senha"]
+
     conn = conectar()
-    c = conn.cursor()
-    c.execute("SELECT * FROM usuarios WHERE usuario=? AND senha=?", (usuario, senha))
+    c = conn.cursor(dictionary=True)
+    c.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
     user = c.fetchone()
     conn.close()
-    if user:
+
+    if user and check_password_hash(user["senha"], senha):
         session["usuario"] = usuario
         return redirect("/dashboard")
-    return "Login inválido"
 
+    flash("Usuário ou senha inválidos", "danger")
+    return redirect("/")
+
+# =========================
+# CADASTRO USUÁRIO
+# =========================
 @app.route("/cadastro", methods=["GET","POST"])
 def cadastro():
     if request.method == "POST":
         usuario = request.form["usuario"]
-        senha = request.form["senha"]
+        senha = generate_password_hash(request.form["senha"])
+
         conn = conectar()
         c = conn.cursor()
-        c.execute("INSERT INTO usuarios (usuario, senha) VALUES (?,?)", (usuario, senha))
+        c.execute("INSERT INTO usuarios (usuario, senha) VALUES (%s,%s)", (usuario, senha))
         conn.commit()
         conn.close()
+
+        flash("Usuário cadastrado com sucesso!", "success")
         return redirect("/")
+
     return render_template("cadastro.html")
 
+# =========================
+# DASHBOARD
+# =========================
 @app.route("/dashboard")
 def dashboard():
     if "usuario" not in session:
         return redirect("/")
     return render_template("dashboard.html")
 
+# =========================
+# PRODUTOS
+# =========================
 @app.route("/produtos", methods=["GET","POST"])
 def produtos():
+    if "usuario" not in session:
+        return redirect("/")
+
     conn = conectar()
-    c = conn.cursor()
+    c = conn.cursor(dictionary=True)
+
     if request.method == "POST":
         descricao = request.form["descricao"]
         valor = float(request.form["valor"])
         estoque = int(request.form["estoque"])
-        c.execute("INSERT INTO produtos (descricao, valor, estoque) VALUES (?,?,?)", (descricao, valor, estoque))
+
+        c.execute("INSERT INTO produtos (descricao, valor, estoque) VALUES (%s,%s,%s)",
+                  (descricao, valor, estoque))
         conn.commit()
+        flash("Produto cadastrado com sucesso!", "success")
+
     c.execute("SELECT * FROM produtos")
     lista = c.fetchall()
     conn.close()
+
     return render_template("produtos.html", produtos=lista)
 
+# =========================
+# VENDAS
+# =========================
 @app.route("/vendas", methods=["GET","POST"])
 def vendas():
+    if "usuario" not in session:
+        return redirect("/")
+
     conn = conectar()
-    c = conn.cursor()
+    c = conn.cursor(dictionary=True)
+
     c.execute("SELECT * FROM produtos")
     produtos = c.fetchall()
+
     if request.method == "POST":
         produto_id = int(request.form["produto"])
         quantidade = int(request.form["quantidade"])
-        c.execute("SELECT valor, estoque FROM produtos WHERE id=?", (produto_id,))
-        p = c.fetchone()
-        total = p[0] * quantidade
-        novo = p[1] - quantidade
-        c.execute("UPDATE produtos SET estoque=? WHERE id=?", (novo, produto_id))
-        c.execute("INSERT INTO vendas (produto_id, quantidade, valor_total, data) VALUES (?,?,?,?)",
+
+        c.execute("SELECT * FROM produtos WHERE id=%s", (produto_id,))
+        produto = c.fetchone()
+
+        if quantidade > produto["estoque"]:
+            flash("Estoque insuficiente!", "danger")
+            return redirect("/vendas")
+
+        total = produto["valor"] * quantidade
+        novo_estoque = produto["estoque"] - quantidade
+
+        c.execute("UPDATE produtos SET estoque=%s WHERE id=%s",
+                  (novo_estoque, produto_id))
+
+        c.execute("""INSERT INTO vendas 
+                    (produto_id, quantidade, valor_total, data_venda)
+                    VALUES (%s,%s,%s,%s)""",
                   (produto_id, quantidade, total, datetime.now()))
+
         conn.commit()
+        flash("Venda realizada com sucesso!", "success")
+
     conn.close()
     return render_template("vendas.html", produtos=produtos)
 
+# =========================
+# RELATÓRIOS
+# =========================
 @app.route("/relatorios")
 def relatorios():
+    if "usuario" not in session:
+        return redirect("/")
+
     conn = conectar()
-    c = conn.cursor()
+    c = conn.cursor(dictionary=True)
+
     c.execute("SELECT * FROM produtos")
     produtos = c.fetchall()
-    c.execute("SELECT v.id, p.descricao, v.quantidade, v.valor_total, v.data FROM vendas v JOIN produtos p ON v.produto_id=p.id")
+
+    c.execute("""
+        SELECT v.id, p.descricao, v.quantidade, v.valor_total, v.data_venda
+        FROM vendas v
+        JOIN produtos p ON v.produto_id=p.id
+        ORDER BY v.data_venda DESC
+    """)
     vendas = c.fetchall()
+
     conn.close()
     return render_template("relatorios.html", produtos=produtos, vendas=vendas)
 
+# =========================
+# PDF
+# =========================
 @app.route("/relatorio_pdf")
 def relatorio_pdf():
     conn = conectar()
@@ -118,11 +183,15 @@ def relatorio_pdf():
 
     file_path = "relatorio.pdf"
     doc = SimpleDocTemplate(file_path, pagesize=A4)
-    data = [["Produto","Estoque"]] + produtos
+    data = [["Produto","Estoque"]] + list(produtos)
     table = Table(data)
     doc.build([table])
+
     return send_file(file_path, as_attachment=True)
 
+# =========================
+# EXCEL
+# =========================
 @app.route("/relatorio_excel")
 def relatorio_excel():
     conn = conectar()
@@ -136,6 +205,7 @@ def relatorio_excel():
     ws.append(["Produto","Estoque"])
     for p in produtos:
         ws.append(p)
+
     file_path = "relatorio.xlsx"
     wb.save(file_path)
     return send_file(file_path, as_attachment=True)
