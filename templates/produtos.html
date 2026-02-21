@@ -1,7 +1,14 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<a href="/" class="btn btn-light btn-sm">Sair</a>
+<nav class="navbar navbar-dark bg-primary">
+  <div class="container-fluid">
+    <span class="navbar-brand">Sistema Quermesse</span>
+    {% if session.usuario %}
+      <a href="/" class="btn btn-light btn-sm">Sair</a>
+    {% endif %}
+  </div>
+</nav>
 <a href="/dashboard" class="btn btn-secondary mb-3">
     ← Voltar para a Página Inicial
 </a>
