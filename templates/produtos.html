@@ -13,14 +13,23 @@
 </form>
 <hr>
 <table class="table table-bordered">
-<tr><th>ID</th><th>Descrição do Produto</th><th>Valor Unitário</th><th>Estoque Inicial</th><th>Estoque Atual</th></tr>
+<tr><th>ID</th><th>Descrição do Produto</th><th>Valor Unitário</th><th>Estoque Inicial</th><th>Estoque Atual</th><th>Ações</th></tr>
 {% for p in produtos %}
 <tr>
   <td>{{ p.id }}</td>
   <td>{{ p.descricao }}</td>
-  <td>R$ {{ "%.2f"|format(p.valor) }}</td>
+  <td>R$ {{ "{:,.2f}".format(p.valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
   <td>{{ p.estoque_inicial }}</td>
   <td>{{ p.estoque_atual }}</td>
+  <td>
+    <a href="/editar_produto/{{ p.id }}" class="btn btn-warning btn-sm">Editar</a>
+    
+    <a href="/excluir_produto/{{ p.id }}" 
+       class="btn btn-danger btn-sm"
+       onclick="return confirm('Tem certeza que deseja excluir este produto?')">
+       Excluir
+    </a>
+  </td>
 </tr>
 {% endfor %}
 </table>
