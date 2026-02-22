@@ -160,11 +160,30 @@ function salvarVenda(){
             alert("⚠ Estoque baixo:\n\n" + data.alertas.join("\n"));
         }
 
-        alert("Venda salva com sucesso!");
-        location.reload();
+        // ✅ Mostrar registro da venda
+        const resumo = document.getElementById("resumoVenda");
+        resumo.innerHTML = "";
+
+        data.registro.forEach(item => {
+            const li = document.createElement("li");
+            li.className = "list-group-item";
+            li.innerText = item.descricao + " - Quantidade: " + item.quantidade;
+            resumo.appendChild(li);
+        });
+
+        document.getElementById("registroVenda").style.display = "block";
+
+        // ✅ Imprimir automaticamente
+        imprimirCupom();
+
+        // Limpa lista visual
+        document.getElementById("listaProdutos").innerHTML = "";
+        document.getElementById("valorTotal").innerText = "0.00";
+        itensVenda = [];
+        estoqueControle = {};
+        totalVenda = 0;
     });
 }
-
 
 function imprimirCupom(){
 
