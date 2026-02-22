@@ -2,9 +2,16 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<a href="/dashboard" class="btn btn-secondary mb-3">
-    ← Voltar
-</a>
+<div class="d-flex justify-content-between mb-3">
+    <a href="/dashboard" class="btn btn-secondary">
+        ← Voltar
+    </a>
+
+    <button onclick="location.reload()"
+            class="btn btn-success">
+        Nova Venda
+    </button>
+</div>
 
 <h3>Nova Venda</h3>
 
