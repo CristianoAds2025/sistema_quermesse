@@ -115,10 +115,10 @@ def produtos():
     if request.method == "POST":
         descricao = request.form["descricao"]
         valor = float(request.form["valor"].replace(",", "."))
-        estoque = int(request.form["estoque"])
+        estoque_inicial = int(request.form["estoque_inicial"])
 
-        c.execute("INSERT INTO produtos (descricao, valor, estoque) VALUES (%s,%s,%s)",
-                  (descricao, valor, estoque))
+        c.execute("INSERT INTO produtos (descricao, valor, estoque_inicial) VALUES (%s,%s,%s)",
+                  (descricao, valor, estoque_inicial))
         conn.commit()
         flash("Produto cadastrado com sucesso!", "success")
 
