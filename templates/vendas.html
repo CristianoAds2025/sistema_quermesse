@@ -1,39 +1,194 @@
 
 {% extends 'base.html' %}
 {% block content %}
+
 <a href="/dashboard" class="btn btn-secondary mb-3">
-    ← Voltar para a Página Inicial
+    ← Voltar
 </a>
+
 <h3>Nova Venda</h3>
 
-<form method="post">
-<select name="produto" class="form-select mb-2" required>
-{% for p in produtos %}
-<option value="{{p.id}}" data-valor="{{p.valor}}">
-{{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque}})
-</option>
-{% endfor %}
-</select>
+<div class="card p-3 shadow-sm">
 
-<input type="number" id="quantidade" name="quantidade" class="form-control mb-2" placeholder="Quantidade" required>
+    <div class="row">
+        <div class="col-md-6">
+            <select id="produto" class="form-select mb-2">
+                {% for p in produtos %}
+                <option value="{{p.id}}"
+                        data-descricao="{{p.descricao}}"
+                        data-valor="{{p.valor}}"
+                        data-estoque="{{p.estoque}}">
+                    {{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque}})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
 
-<input type="text" id="total" class="form-control mb-2" placeholder="Total" readonly>
+        <div class="col-md-3">
+            <input type="number" id="quantidade"
+                   class="form-control mb-2"
+                   placeholder="Quantidade" min="1">
+        </div>
 
-<button class="btn btn-success">Salvar Venda</button>
-</form>
+        <div class="col-md-3">
+            <button type="button"
+                    onclick="adicionarProduto()"
+                    class="btn btn-primary w-100">
+                Adicionar
+            </button>
+        </div>
+    </div>
+
+    <hr>
+
+    <h5>Itens da Venda</h5>
+    <ul id="listaProdutos" class="list-group mb-3"></ul>
+
+    <h5>Total: R$ <span id="valorTotal">0.00</span></h5>
+
+    <hr>
+
+    <div class="d-flex gap-2">
+        <button onclick="salvarVenda()"
+                class="btn btn-success">
+            Salvar Venda
+        </button>
+
+        <button onclick="imprimirCupom()"
+                class="btn btn-dark">
+            Imprimir
+        </button>
+    </div>
+
+</div>
 
 <script>
-const select = document.querySelector("select");
-const quantidade = document.getElementById("quantidade");
-const total = document.getElementById("total");
 
-function calcular(){
-  const valor = select.options[select.selectedIndex].dataset.valor;
-  total.value = (valor * quantidade.value).toFixed(2);
+let itensVenda = [];
+let totalVenda = 0;
+let estoqueControle = {};
+
+function adicionarProduto(){
+
+    const select = document.getElementById("produto");
+    const quantidade = parseInt(document.getElementById("quantidade").value);
+
+    if(!quantidade || quantidade < 1){
+        alert("Informe quantidade válida");
+        return;
+    }
+
+    const option = select.options[select.selectedIndex];
+
+    const id = option.value;
+    const descricao = option.dataset.descricao;
+    const valor = parseFloat(option.dataset.valor);
+    const estoqueDisponivel = parseInt(option.dataset.estoque);
+
+    if(!estoqueControle[id]){
+        estoqueControle[id] = 0;
+    }
+
+    if((estoqueControle[id] + quantidade) > estoqueDisponivel){
+        alert("Estoque insuficiente!");
+        return;
+    }
+
+    for(let i=0;i<quantidade;i++){
+
+        const item = {id, descricao, valor};
+        itensVenda.push(item);
+
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        li.innerHTML = `
+            <span>${descricao} - R$ ${valor.toFixed(2)}</span>
+            <button class="btn btn-sm btn-danger">X</button>
+        `;
+
+        li.querySelector("button").addEventListener("click", function(){
+
+            li.remove();
+            totalVenda -= valor;
+            estoqueControle[id] -= 1;
+
+            const index = itensVenda.indexOf(item);
+            if(index > -1){
+                itensVenda.splice(index,1);
+            }
+
+            document.getElementById("valorTotal").innerText = totalVenda.toFixed(2);
+        });
+
+        document.getElementById("listaProdutos").appendChild(li);
+
+        totalVenda += valor;
+        estoqueControle[id] += 1;
+    }
+
+    document.getElementById("valorTotal").innerText = totalVenda.toFixed(2);
+    document.getElementById("quantidade").value = "";
 }
 
-select.addEventListener("change", calcular);
-quantidade.addEventListener("input", calcular);
+
+function salvarVenda(){
+
+    fetch("/salvar_venda", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            itens: itensVenda
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(data.erro){
+            alert(data.erro);
+            return;
+        }
+
+        if(data.alertas && data.alertas.length > 0){
+            alert("⚠ Estoque baixo:\n\n" + data.alertas.join("\n"));
+        }
+
+        alert("Venda salva com sucesso!");
+        location.reload();
+    });
+}
+
+
+function imprimirCupom(){
+
+    let janela = window.open('', '', 'width=300,height=600');
+
+    let conteudo = `
+    <html>
+    <head>
+        <style>
+            body{font-family: monospace; width:58mm;}
+            @page{margin:0;}
+        </style>
+    </head>
+    <body>
+    `;
+
+    itensVenda.forEach(item=>{
+        conteudo += `
+            ${item.descricao}<br>
+            R$ ${item.valor.toFixed(2)}
+            <div style="page-break-after:always;"></div>
+        `;
+    });
+
+    conteudo += "</body></html>";
+
+    janela.document.write(conteudo);
+    janela.document.close();
+    janela.print();
+}
+
 </script>
 
 {% endblock %}
