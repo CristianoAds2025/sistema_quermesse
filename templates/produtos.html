@@ -23,12 +23,6 @@
   <td>{{ p.estoque_atual }}</td>
   <td>
     <a href="/editar_produto/{{ p.id }}" class="btn btn-warning btn-sm">Editar</a>
-    
-    <a href="/excluir_produto/{{ p.id }}" 
-       class="btn btn-danger btn-sm"
-       onclick="return confirm('Tem certeza que deseja excluir este produto?')">
-       Excluir
-    </a>
   </td>
 </tr>
 {% endfor %}
