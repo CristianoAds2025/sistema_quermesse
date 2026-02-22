@@ -36,8 +36,13 @@ def login():
     session.pop('usuario', None)  # remove usuário da sessão
     return render_template("login.html")
 
-@app.route("/autenticar", methods=["POST"])
+@app.route("/autenticar", methods=["GET", "POST"])
 def autenticar():
+
+    # Se alguém tentar acessar via GET, volta para login
+    if request.method == "GET":
+        return redirect("/")
+
     usuario = request.form["usuario"]
     senha = request.form["senha"]
 
