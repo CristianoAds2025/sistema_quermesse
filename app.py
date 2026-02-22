@@ -112,15 +112,22 @@ def produtos():
     conn = conectar()
     c = conn.cursor(dictionary=True)
 
-    if request.method == "POST":
-        descricao = request.form["descricao"]
-        valor = float(request.form["valor"].replace(",", "."))
-        estoque_inicial = int(request.form["estoque_inicial"])
+   if request.method == "POST":
+    descricao = request.form["descricao"]
+    valor = float(request.form["valor"].replace(",", "."))
+    estoque_inicial = int(request.form["estoque_inicial"])
 
-        c.execute("INSERT INTO produtos (descricao, valor, estoque_inicial, estoque_atual) VALUES (%s,%s,%s,%s)",
-                  (descricao, valor, estoque_inicial, estoque_atual))
-        conn.commit()
-        flash("Produto cadastrado com sucesso!", "success")
+    # ✅ estoque atual começa igual ao inicial
+    estoque_atual = estoque_inicial
+
+    c.execute("""
+        INSERT INTO produtos 
+        (descricao, valor, estoque_inicial, estoque_atual) 
+        VALUES (%s,%s,%s,%s)
+    """, (descricao, valor, estoque_inicial, estoque_atual))
+
+    conn.commit()
+    flash("Produto cadastrado com sucesso!", "success")
 
     c.execute("SELECT * FROM produtos")
     lista = c.fetchall()
