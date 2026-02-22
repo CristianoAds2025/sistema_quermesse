@@ -68,7 +68,15 @@
 
 <div id="registroVenda" style="display:none;">
     <h5>Venda Atual</h5>
+
     <ul id="resumoVenda" class="list-group mb-3"></ul>
+
+    <div class="fw-bold text-end mb-3">
+        Total da Venda:
+        <span id="totalResumo" class="text-success fs-5">
+            R$ 0.00
+        </span>
+    </div>
 
     <button onclick="imprimirCupom(window.itensUltimaVenda)"
             class="btn btn-dark">
