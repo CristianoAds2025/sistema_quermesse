@@ -10,11 +10,11 @@
 <hr>
 <h5>Estoque</h5>
 <table class="table">
-<tr><th>Produto</th><th>Estoque</th></tr>
+<tr><th>Produto</th><th>Estoque Atual </th></tr>
 {% for p in produtos %}
 <tr>
     <td>{{ p.descricao }}</td>
-    <td>{{ p.estoque }}</td>
+    <td>{{ p.estoque_atual }}</td>
 </tr>
 {% endfor %}
 </table>
