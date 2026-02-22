@@ -16,7 +16,7 @@ app.secret_key = "quermesse_secret"
 # =========================
 def conectar():
     try:
-        return mysql.connector.connect(
+        conn = mysql.connector.connect(
             host=os.getenv("DB_HOST"),
             user=os.getenv("DB_USER"),
             password=os.getenv("DB_PASSWORD"),
@@ -24,8 +24,9 @@ def conectar():
             port=int(os.getenv("DB_PORT", 3306)),
             ssl_disabled=False
         )
+        return conn
     except Exception as e:
-        print("Erro ao conectar no banco:", e)
+        print("ERRO GRAVE AO CONECTAR NO MYSQL:", e)
         return None
 # =========================
 # LOGIN
@@ -41,7 +42,10 @@ def autenticar():
     senha = request.form["senha"]
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+if not conn:
+    return "Erro ao conectar no banco", 500
+
+c = conn.cursor(dictionary=True)
     c.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
     user = c.fetchone()
     conn.close()
