@@ -117,8 +117,8 @@ def produtos():
         valor = float(request.form["valor"].replace(",", "."))
         estoque_inicial = int(request.form["estoque_inicial"])
 
-        c.execute("INSERT INTO produtos (descricao, valor, estoque_inicial) VALUES (%s,%s,%s)",
-                  (descricao, valor, estoque_inicial))
+        c.execute("INSERT INTO produtos (descricao, valor, estoque_inicial, estoque_atual) VALUES (%s,%s,%s,%s)",
+                  (descricao, valor, estoque_inicial, estoque_atual))
         conn.commit()
         flash("Produto cadastrado com sucesso!", "success")
 
@@ -179,9 +179,9 @@ def salvar_venda():
 
             c.execute("""
                 UPDATE produtos
-                SET estoque = estoque - %s
+                SET estoque_atual = estoque_atual - %s
                 WHERE id = %s
-                AND estoque >= %s
+                AND estoque_atual >= %s
             """, (quantidade, produto_id, quantidade))
 
             if c.rowcount == 0:
@@ -191,7 +191,7 @@ def salvar_venda():
                 }), 400
 
             c.execute("""
-                SELECT descricao, estoque,
+                SELECT descricao, estoque_atual,
                        IFNULL(estoque_minimo,5) as estoque_minimo
                 FROM produtos
                 WHERE id = %s
@@ -203,9 +203,9 @@ def salvar_venda():
                 "quantidade": quantidade
             })
 
-            if produto["estoque"] <= produto["estoque_minimo"]:
+            if produto["estoque_atual"] <= produto["estoque_minimo"]:
                 alertas.append(
-                    f'{produto["descricao"]} com estoque baixo ({produto["estoque"]})'
+                    f'{produto["descricao"]} com estoque baixo ({produto["estoque_atual"]})'
                 )
 
         # 🧾 INSERIR ITENS DA VENDA
@@ -271,7 +271,7 @@ def relatorios():
 def relatorio_pdf():
     conn = conectar()
     c = conn.cursor()
-    c.execute("SELECT descricao, estoque FROM produtos")
+    c.execute("SELECT descricao, estoque_atual FROM produtos")
     produtos = c.fetchall()
     conn.close()
 
@@ -290,7 +290,7 @@ def relatorio_pdf():
 def relatorio_excel():
     conn = conectar()
     c = conn.cursor()
-    c.execute("SELECT descricao, estoque FROM produtos")
+    c.execute("SELECT descricao, estoque_atual FROM produtos")
     produtos = c.fetchall()
     conn.close()
 
