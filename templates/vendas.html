@@ -86,7 +86,7 @@
 let itensVenda = [];
 let totalVenda = 0;
 let estoqueControle = {};
-let itensUltimaVenda = [];
+window.itensUltimaVenda = [];
 
 function adicionarProduto(){
 
@@ -177,7 +177,7 @@ function salvarVenda(){
         const resumo = document.getElementById("resumoVenda");
         resumo.innerHTML = "";
 
-        itensUltimaVenda = [];
+        window.itensUltimaVenda = [];
 
         itensVenda.forEach(item => {
 
@@ -190,13 +190,13 @@ function salvarVenda(){
 
             resumo.appendChild(li);
 
-            itensUltimaVenda.push(item);
+           window.itensUltimaVenda.push(item);
         });
 
         document.getElementById("registroVenda").style.display = "block";
 
         // ✅ Imprimir automaticamente
-        imprimirCupom(itensUltimaVenda);
+        imprimirCupom(window.itensUltimaVenda);
 
         // Limpa lista visual
         document.getElementById("listaProdutos").innerHTML = "";
