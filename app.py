@@ -1,5 +1,5 @@
 
-from flask import Flask, render_template, request, redirect, session, send_file, flash
+from flask import Flask, render_template, request, redirect, session, send_file, flash, jsonify
 import mysql.connector
 import os
 from datetime import datetime
@@ -121,46 +121,103 @@ def produtos():
     return render_template("produtos.html", produtos=lista)
 
 # =========================
-# VENDAS
+# VENDAS (NOVO MODELO)
 # =========================
-@app.route("/vendas", methods=["GET","POST"])
+
+@app.route("/vendas")
 def vendas():
     if "usuario" not in session:
         return redirect("/")
 
     conn = conectar()
     c = conn.cursor(dictionary=True)
-
     c.execute("SELECT * FROM produtos")
     produtos = c.fetchall()
+    conn.close()
 
-    if request.method == "POST":
-        produto_id = int(request.form["produto"])
-        quantidade = int(request.form["quantidade"])
+    return render_template("vendas.html", produtos=produtos)
 
-        c.execute("SELECT * FROM produtos WHERE id=%s", (produto_id,))
-        produto = c.fetchone()
 
-        if quantidade > produto["estoque"]:
-            flash("Estoque insuficiente!", "danger")
-            return redirect("/vendas")
+@app.route("/salvar_venda", methods=["POST"])
+def salvar_venda():
+    if "usuario" not in session:
+        return jsonify({"erro": "Não autorizado"}), 403
 
-        total = produto["valor"] * quantidade
-        novo_estoque = produto["estoque"] - quantidade
+    dados = request.get_json()
+    itens = dados.get("itens", [])
 
-        c.execute("UPDATE produtos SET estoque=%s WHERE id=%s",
-                  (novo_estoque, produto_id))
+    if not itens:
+        return jsonify({"erro": "Nenhum item na venda"}), 400
 
-        c.execute("""INSERT INTO vendas 
-                    (produto_id, quantidade, valor_total, data_venda)
-                    VALUES (%s,%s,%s,%s)""",
-                  (produto_id, quantidade, total, datetime.now()))
+    conn = conectar()
+    c = conn.cursor(dictionary=True)
+
+    try:
+        conn.start_transaction()
+
+        # Contagem por produto
+        contagem = {}
+        for item in itens:
+            contagem[item["id"]] = contagem.get(item["id"], 0) + 1
+
+        alertas = []
+
+        for produto_id, quantidade in contagem.items():
+
+            # 🔒 UPDATE com proteção concorrente
+            c.execute("""
+                UPDATE produtos
+                SET estoque = estoque - %s
+                WHERE id = %s
+                AND estoque >= %s
+            """, (quantidade, produto_id, quantidade))
+
+            if c.rowcount == 0:
+                conn.rollback()
+                return jsonify({
+                    "erro": "Estoque insuficiente (venda simultânea detectada)"
+                }), 400
+
+            # Verifica estoque mínimo
+            c.execute("""
+                SELECT descricao, estoque, 
+                       IFNULL(estoque_minimo,5) as estoque_minimo
+                FROM produtos
+                WHERE id = %s
+            """, (produto_id,))
+            produto = c.fetchone()
+
+            if produto["estoque"] <= produto["estoque_minimo"]:
+                alertas.append(
+                    f'{produto["descricao"]} com estoque baixo ({produto["estoque"]})'
+                )
+
+        # Registrar venda por item
+        for item in itens:
+            c.execute("""
+                INSERT INTO vendas
+                (produto_id, quantidade, valor_total, data_venda)
+                VALUES (%s, %s, %s, %s)
+            """, (
+                item["id"],
+                1,
+                item["valor"],
+                datetime.now()
+            ))
 
         conn.commit()
-        flash("Venda realizada com sucesso!", "success")
 
-    conn.close()
-    return render_template("vendas.html", produtos=produtos)
+        return jsonify({
+            "sucesso": True,
+            "alertas": alertas
+        })
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"erro": str(e)}), 500
+
+    finally:
+        conn.close()
 
 # =========================
 # RELATÓRIOS
