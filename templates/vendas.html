@@ -24,8 +24,8 @@
                 <option value="{{p.id}}"
                         data-descricao="{{p.descricao}}"
                         data-valor="{{p.valor}}"
-                        data-estoque="{{p.estoque}}">
-                    {{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque}})
+                        data-estoque="{{p.estoque_atual}}">
+                    {{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque_atual}})
                 </option>
                 {% endfor %}
             </select>
