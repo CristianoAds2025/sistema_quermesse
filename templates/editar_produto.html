@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<a href="/produtos" class="btn btn-secondary mb-3">← Voltar</a>
+
+<h3>Editar Produto</h3>
+
+<form method="post">
+  <input class="form-control mb-2" name="descricao" 
+         value="{{ produto.descricao }}" required>
+
+  <input class="form-control mb-2" name="valor" 
+         value="{{ produto.valor }}" required>
+
+  <input class="form-control mb-2" name="estoque_inicial" 
+         value="{{ produto.estoque_inicial }}" required>
+
+  <button class="btn btn-success">Salvar Alterações</button>
+</form>
+
+{% endblock %}
