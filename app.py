@@ -292,3 +292,8 @@ def relatorio_excel():
     file_path = "relatorio.xlsx"
     wb.save(file_path)
     return send_file(file_path, as_attachment=True)
+
+@app.route("/health")
+def health():
+    return "OK", 200
+
