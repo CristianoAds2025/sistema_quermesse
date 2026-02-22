@@ -168,7 +168,6 @@ function salvarVenda(){
             alert("⚠ Estoque baixo:\n\n" + data.alertas.join("\n"));
         }
 
-        // ✅ Construir registro igual lista superior
         const resumo = document.getElementById("resumoVenda");
         resumo.innerHTML = "";
 
@@ -184,16 +183,16 @@ function salvarVenda(){
             `;
 
             resumo.appendChild(li);
-
-           window.itensUltimaVenda.push(item);
+            window.itensUltimaVenda.push(item);
         });
 
         document.getElementById("registroVenda").style.display = "block";
 
-        // ✅ Imprimir automaticamente
+        window.numeroVendaAtual = data.numero_venda;
+        window.dataVendaAtual = data.data_venda;
+
         imprimirCupom(window.itensUltimaVenda);
 
-        // Limpa lista visual
         document.getElementById("listaProdutos").innerHTML = "";
         document.getElementById("valorTotal").innerText = "0.00";
         itensVenda = [];
@@ -203,12 +202,15 @@ function salvarVenda(){
 }
 
 
-function imprimirCupom(listaItens = itensVenda){
+function imprimirCupom(listaItens = window.itensUltimaVenda){
 
     if(!listaItens || listaItens.length === 0){
         alert("Nenhum item para imprimir");
         return;
     }
+
+    let total = 0;
+    listaItens.forEach(i => total += i.valor);
 
     let janela = window.open('', '', 'width=300,height=600');
 
@@ -216,22 +218,60 @@ function imprimirCupom(listaItens = itensVenda){
     <html>
     <head>
         <style>
-            body{font-family: monospace; width:58mm;}
+            body{
+                font-family: monospace;
+                width:58mm;
+                text-align:center;
+            }
             @page{margin:0;}
+            .linha{
+                text-align:left;
+                margin-top:5px;
+            }
+            .total{
+                font-weight:bold;
+                margin-top:10px;
+            }
+            hr{
+                border-top:1px dashed black;
+                margin:5px 0;
+            }
         </style>
     </head>
     <body>
+
+        <h3>PARÓQUIA NOSSA SENHORA</h3>
+        <div>Quermesse Beneficente</div>
+        <hr>
+
+        <div><strong>Venda Nº:</strong> ${window.numeroVendaAtual}</div>
+        <div><strong>Data:</strong> ${window.dataVendaAtual}</div>
+
+        <hr>
     `;
 
     listaItens.forEach(item=>{
         conteudo += `
-            ${item.descricao}<br>
-            R$ ${item.valor.toFixed(2)}
+            <div class="linha">
+                ${item.descricao} <br>
+                R$ ${item.valor.toFixed(2)}
+            </div>
             <div style="page-break-after:always;"></div>
         `;
     });
 
-    conteudo += "</body></html>";
+    conteudo += `
+        <hr>
+        <div class="total">
+            TOTAL: R$ ${total.toFixed(2)}
+        </div>
+
+        <hr>
+        <div>Obrigado pela preferência!</div>
+
+    </body>
+    </html>
+    `;
 
     janela.document.write(conteudo);
     janela.document.close();
