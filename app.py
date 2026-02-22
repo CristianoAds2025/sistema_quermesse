@@ -42,10 +42,10 @@ def autenticar():
     senha = request.form["senha"]
 
     conn = conectar()
-if not conn:
-    return "Erro ao conectar no banco", 500
+    if not conn:
+        return "Erro ao conectar no banco", 500
 
-c = conn.cursor(dictionary=True)
+    c = conn.cursor(dictionary=True)
     c.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
     user = c.fetchone()
     conn.close()
