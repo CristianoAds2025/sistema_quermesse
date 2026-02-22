@@ -181,18 +181,26 @@ function salvarVenda(){
 
         window.itensUltimaVenda = [];
 
-        itensVenda.forEach(item => {
+     let totalResumo = 0;
 
-            const li = document.createElement("li");
-            li.className = "list-group-item d-flex justify-content-between align-items-center";
+itensVenda.forEach(item => {
 
-            li.innerHTML = `
-                <span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
-            `;
+    const li = document.createElement("li");
+    li.className = "list-group-item d-flex justify-content-between align-items-center";
 
-            resumo.appendChild(li);
-            window.itensUltimaVenda.push(item);
-        });
+    li.innerHTML = `
+        <span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
+    `;
+
+    resumo.appendChild(li);
+    window.itensUltimaVenda.push(item);
+
+    totalResumo += item.valor;
+});
+
+// 🔥 Atualiza total visual
+document.getElementById("totalResumo").innerText =
+    "R$ " + totalResumo.toFixed(2);
 
         document.getElementById("registroVenda").style.display = "block";
 
