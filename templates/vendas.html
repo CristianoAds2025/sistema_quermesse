@@ -75,7 +75,7 @@
     <h5>Venda Atual</h5>
     <ul id="resumoVenda" class="list-group mb-3"></ul>
 
-    <button onclick="imprimirCupom()"
+    <button onclick="imprimirCupom(window.itensUltimaVenda)"
             class="btn btn-dark">
         Imprimir
     </button>
@@ -86,6 +86,7 @@
 let itensVenda = [];
 let totalVenda = 0;
 let estoqueControle = {};
+let itensUltimaVenda = [];
 
 function adicionarProduto(){
 
@@ -172,21 +173,30 @@ function salvarVenda(){
             alert("⚠ Estoque baixo:\n\n" + data.alertas.join("\n"));
         }
 
-        // ✅ Mostrar registro da venda
+        // ✅ Construir registro igual lista superior
         const resumo = document.getElementById("resumoVenda");
         resumo.innerHTML = "";
 
-        data.registro.forEach(item => {
+        itensUltimaVenda = [];
+
+        itensVenda.forEach(item => {
+
             const li = document.createElement("li");
-            li.className = "list-group-item";
-            li.innerText = item.descricao + " - Quantidade: " + item.quantidade;
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+            li.innerHTML = `
+                <span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
+            `;
+
             resumo.appendChild(li);
+
+            itensUltimaVenda.push(item);
         });
 
         document.getElementById("registroVenda").style.display = "block";
 
         // ✅ Imprimir automaticamente
-        imprimirCupom();
+        imprimirCupom(itensUltimaVenda);
 
         // Limpa lista visual
         document.getElementById("listaProdutos").innerHTML = "";
@@ -197,7 +207,13 @@ function salvarVenda(){
     });
 }
 
-function imprimirCupom(){
+
+function imprimirCupom(listaItens = itensVenda){
+
+    if(!listaItens || listaItens.length === 0){
+        alert("Nenhum item para imprimir");
+        return;
+    }
 
     let janela = window.open('', '', 'width=300,height=600');
 
@@ -212,7 +228,7 @@ function imprimirCupom(){
     <body>
     `;
 
-    itensVenda.forEach(item=>{
+    listaItens.forEach(item=>{
         conteudo += `
             ${item.descricao}<br>
             R$ ${item.valor.toFixed(2)}
