@@ -247,6 +247,43 @@ def salvar_venda():
         conn.close()
 
 # =========================
+# EDITAR PRODUTOS
+# =========================
+@app.route("/editar_produto/<int:id>", methods=["GET", "POST"])
+def editar_produto(id):
+    if "usuario" not in session:
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(dictionary=True)
+
+    if request.method == "POST":
+        descricao = request.form["descricao"]
+        valor = float(request.form["valor"].replace(",", "."))
+        estoque_inicial = int(request.form["estoque_inicial"])
+
+        # ⚠ Atualiza também estoque_atual proporcionalmente
+        c.execute("""
+            UPDATE produtos
+            SET descricao = %s,
+                valor = %s,
+                estoque_inicial = %s
+            WHERE id = %s
+        """, (descricao, valor, estoque_inicial, id))
+
+        conn.commit()
+        conn.close()
+
+        flash("Produto atualizado com sucesso!", "success")
+        return redirect("/produtos")
+
+    c.execute("SELECT * FROM produtos WHERE id=%s", (id,))
+    produto = c.fetchone()
+    conn.close()
+
+    return render_template("editar_produto.html", produto=produto)
+
+# =========================
 # RELATÓRIOS
 # =========================
 @app.route("/relatorios")
