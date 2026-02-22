@@ -163,6 +163,11 @@ def salvar_venda():
     try:
         conn.start_transaction()
 
+        # 🔢 GERAR NÚMERO DA VENDA ANTES DE USAR
+        c.execute("SELECT IFNULL(MAX(numero_venda),0) + 1 AS prox FROM vendas")
+        resultado = c.fetchone()
+        numero_venda = resultado["prox"] if resultado else 1
+
         contagem = {}
         for item in itens:
             contagem[item["id"]] = contagem.get(item["id"], 0) + 1
@@ -203,10 +208,11 @@ def salvar_venda():
                     f'{produto["descricao"]} com estoque baixo ({produto["estoque"]})'
                 )
 
+        # 🧾 INSERIR ITENS DA VENDA
         for item in itens:
             c.execute("""
                 INSERT INTO vendas
-                (numero_venda,produto_id, quantidade, valor_total, data_venda)
+                (numero_venda, produto_id, quantidade, valor_total, data_venda)
                 VALUES (%s, %s, %s, %s, %s)
             """, (
                 numero_venda,
@@ -215,9 +221,6 @@ def salvar_venda():
                 item["valor"],
                 datetime.now()
             ))
-            # Gerar número sequencial da venda
-            c.execute("SELECT IFNULL(MAX(numero_venda),0) + 1 AS prox FROM vendas")
-            numero_venda = c.fetchone()["prox"]
 
         conn.commit()
 
