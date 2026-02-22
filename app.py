@@ -163,16 +163,15 @@ def salvar_venda():
     try:
         conn.start_transaction()
 
-        # Contagem por produto
         contagem = {}
         for item in itens:
             contagem[item["id"]] = contagem.get(item["id"], 0) + 1
 
         alertas = []
+        venda_registro = []
 
         for produto_id, quantidade in contagem.items():
 
-            # 🔒 UPDATE com proteção concorrente
             c.execute("""
                 UPDATE produtos
                 SET estoque = estoque - %s
@@ -186,21 +185,24 @@ def salvar_venda():
                     "erro": "Estoque insuficiente (venda simultânea detectada)"
                 }), 400
 
-            # Verifica estoque mínimo
             c.execute("""
-                SELECT descricao, estoque, 
+                SELECT descricao, estoque,
                        IFNULL(estoque_minimo,5) as estoque_minimo
                 FROM produtos
                 WHERE id = %s
             """, (produto_id,))
             produto = c.fetchone()
 
+            venda_registro.append({
+                "descricao": produto["descricao"],
+                "quantidade": quantidade
+            })
+
             if produto["estoque"] <= produto["estoque_minimo"]:
                 alertas.append(
                     f'{produto["descricao"]} com estoque baixo ({produto["estoque"]})'
                 )
 
-        # Registrar venda por item
         for item in itens:
             c.execute("""
                 INSERT INTO vendas
@@ -217,7 +219,8 @@ def salvar_venda():
 
         return jsonify({
             "sucesso": True,
-            "alertas": alertas
+            "alertas": alertas,
+            "registro": venda_registro
         })
 
     except Exception as e:
