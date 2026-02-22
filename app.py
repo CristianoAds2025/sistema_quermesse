@@ -104,7 +104,7 @@ def dashboard():
 # =========================
 # PRODUTOS
 # =========================
-@app.route("/produtos", methods=["GET","POST"])
+@app.route("/produtos", methods=["GET", "POST"])
 def produtos():
     if "usuario" not in session:
         return redirect("/")
@@ -112,22 +112,22 @@ def produtos():
     conn = conectar()
     c = conn.cursor(dictionary=True)
 
-   if request.method == "POST":
-    descricao = request.form["descricao"]
-    valor = float(request.form["valor"].replace(",", "."))
-    estoque_inicial = int(request.form["estoque_inicial"])
+    if request.method == "POST":
+        descricao = request.form["descricao"]
+        valor = float(request.form["valor"].replace(",", "."))
+        estoque_inicial = int(request.form["estoque_inicial"])
 
-    # ✅ estoque atual começa igual ao inicial
-    estoque_atual = estoque_inicial
+        # estoque atual começa igual ao inicial
+        estoque_atual = estoque_inicial
 
-    c.execute("""
-        INSERT INTO produtos 
-        (descricao, valor, estoque_inicial, estoque_atual) 
-        VALUES (%s,%s,%s,%s)
-    """, (descricao, valor, estoque_inicial, estoque_atual))
+        c.execute("""
+            INSERT INTO produtos 
+            (descricao, valor, estoque_inicial, estoque_atual) 
+            VALUES (%s, %s, %s, %s)
+        """, (descricao, valor, estoque_inicial, estoque_atual))
 
-    conn.commit()
-    flash("Produto cadastrado com sucesso!", "success")
+        conn.commit()
+        flash("Produto cadastrado com sucesso!", "success")
 
     c.execute("SELECT * FROM produtos")
     lista = c.fetchall()
