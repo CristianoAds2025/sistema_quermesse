@@ -18,7 +18,7 @@
 <tr>
   <td>{{ p.id }}</td>
   <td>{{ p.descricao }}</td>
-  <td>{{ p.valor }}</td>
+  <td>R$ {{ "%.2f"|format(p.valor) }}</td>
   <td>{{ p.estoque_inicial }}</td>
   <td>{{ p.estoque_atual }}</td>
 </tr>
