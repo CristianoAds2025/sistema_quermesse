@@ -206,21 +206,27 @@ def salvar_venda():
         for item in itens:
             c.execute("""
                 INSERT INTO vendas
-                (produto_id, quantidade, valor_total, data_venda)
-                VALUES (%s, %s, %s, %s)
+                (numero_venda,produto_id, quantidade, valor_total, data_venda)
+                VALUES (%s, %s, %s, %s, %s)
             """, (
+                numero_venda,
                 item["id"],
                 1,
                 item["valor"],
                 datetime.now()
             ))
+            # Gerar número sequencial da venda
+            c.execute("SELECT IFNULL(MAX(numero_venda),0) + 1 AS prox FROM vendas")
+            numero_venda = c.fetchone()["prox"]
 
         conn.commit()
 
         return jsonify({
             "sucesso": True,
             "alertas": alertas,
-            "registro": venda_registro
+            "registro": venda_registro,
+            "numero_venda": numero_venda,
+            "data_venda": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         })
 
     except Exception as e:
