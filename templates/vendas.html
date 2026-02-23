@@ -78,10 +78,20 @@
         </span>
     </div>
 
+    <div class="d-flex gap-2">
+
     <button onclick="imprimirCupom(window.itensUltimaVenda)"
             class="btn btn-dark">
         Imprimir
     </button>
+
+    <!-- 🔴 BOTÃO CANCELAR VENDA -->
+    <button onclick="cancelarVenda()"
+            class="btn btn-danger">
+        Cancelar Venda
+    </button>
+
+</div>
 </div>
 
 <script>
@@ -313,6 +323,44 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
     janela.print();
 }
 
+function cancelarVenda(){
+
+    if(!window.numeroVendaAtual){
+        alert("Nenhuma venda para cancelar");
+        return;
+    }
+
+    const confirmar = confirm("⚠ Tem certeza que deseja CANCELAR esta venda?\n\nO estoque será restaurado.");
+
+    if(!confirmar){
+        return;
+    }
+
+    fetch("/cancelar_venda", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            numero_venda: window.numeroVendaAtual
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(data.erro){
+            alert(data.erro);
+            return;
+        }
+
+        alert("Venda cancelada com sucesso!");
+
+        // Esconde painel da venda
+        document.getElementById("registroVenda").style.display = "none";
+
+        window.numeroVendaAtual = null;
+        window.itensUltimaVenda = [];
+    });
+}
+    
 </script>
 
 {% endblock %}
