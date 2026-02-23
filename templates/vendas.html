@@ -228,7 +228,7 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
     let total = 0;
     listaItens.forEach(i => total += i.valor);
 
-    let janela = window.open('', '', 'width=300,height=600');
+    let janela = window.open('', '', 'width=300,height=800');
 
     let conteudo = `
     <html>
@@ -237,17 +237,31 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
             body{
                 font-family: monospace;
                 width:58mm;
+                margin:0;
+                padding:5px;
                 text-align:center;
             }
-            @page{margin:0;}
-            .linha{
-                text-align:left;
-                margin-top:5px;
+
+            @page{
+                margin:0;
             }
+
+            .item{
+                margin-top:10px;
+                text-align:left;
+            }
+
+            .separador{
+                border-top:1px dashed black;
+                margin-top:7cm;
+                margin-bottom:5px;
+            }
+
             .total{
                 font-weight:bold;
-                margin-top:10px;
+                margin-top:15px;
             }
+
             hr{
                 border-top:1px dashed black;
                 margin:5px 0;
@@ -266,14 +280,21 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
         <hr>
     `;
 
-    listaItens.forEach(item=>{
+    listaItens.forEach((item, index)=>{
+
         conteudo += `
-            <div class="linha">
+            <div class="item">
                 ${item.descricao} <br>
                 R$ ${item.valor.toFixed(2)}
             </div>
-            <div style="page-break-after:always;"></div>
         `;
+
+        // 🔥 adiciona linha pontilhada com 7cm de espaço,
+        // mas não coloca após o último item
+        if(index < listaItens.length - 1){
+            conteudo += `<div class="separador"></div>`;
+        }
+
     });
 
     conteudo += `
