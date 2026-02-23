@@ -246,6 +246,62 @@ def salvar_venda():
     finally:
         conn.close()
 
+@app.route("/cancelar_venda", methods=["POST"])
+def cancelar_venda():
+
+    if "usuario" not in session:
+        return jsonify({"erro": "Não autorizado"}), 403
+
+    dados = request.get_json()
+    numero_venda = dados.get("numero_venda")
+
+    if not numero_venda:
+        return jsonify({"erro": "Número da venda não informado"}), 400
+
+    conn = conectar()
+    c = conn.cursor(dictionary=True)
+
+    try:
+        conn.start_transaction()
+
+        # 🔎 Buscar itens da venda
+        c.execute("""
+            SELECT produto_id, quantidade
+            FROM vendas
+            WHERE numero_venda = %s
+        """, (numero_venda,))
+
+        itens = c.fetchall()
+
+        if not itens:
+            conn.rollback()
+            return jsonify({"erro": "Venda não encontrada"}), 404
+
+        # 🔥 Restaurar estoque
+        for item in itens:
+            c.execute("""
+                UPDATE produtos
+                SET estoque_atual = estoque_atual + %s
+                WHERE id = %s
+            """, (item["quantidade"], item["produto_id"]))
+
+        # ❌ Excluir venda
+        c.execute("""
+            DELETE FROM vendas
+            WHERE numero_venda = %s
+        """, (numero_venda,))
+
+        conn.commit()
+
+        return jsonify({"sucesso": True})
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"erro": str(e)}), 500
+
+    finally:
+        conn.close()
+
 # =========================
 # EDITAR PRODUTOS
 # =========================
