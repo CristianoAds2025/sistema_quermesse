@@ -146,7 +146,7 @@ def vendas():
 
     conn = conectar()
     c = conn.cursor(dictionary=True)
-    c.execute("SELECT * FROM produtos")
+    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     produtos = c.fetchall()
     conn.close()
 
