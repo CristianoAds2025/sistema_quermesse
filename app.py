@@ -129,7 +129,7 @@ def produtos():
         conn.commit()
         flash("Produto cadastrado com sucesso!", "success")
 
-    c.execute("SELECT * FROM produtos")
+    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     lista = c.fetchall()
     conn.close()
 
@@ -294,7 +294,7 @@ def relatorios():
     conn = conectar()
     c = conn.cursor(dictionary=True)
 
-    c.execute("SELECT * FROM produtos")
+    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     produtos = c.fetchall()
 
     c.execute("""
