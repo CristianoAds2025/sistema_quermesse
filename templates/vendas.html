@@ -299,21 +299,19 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
         <hr>
     `;
 
-    listaItens.forEach((item, index)=>{
+    listaItens.forEach((item)=>{
 
-        conteudo += `
-            <div class="item">
-                ${item.descricao} <br>
-                R$ ${item.valor.toFixed(2)}
-            </div>
-        `;
+    conteudo += `
+        <div class="separador"></div>
 
-        // 🔥 Linha pontilhada apenas entre os itens
-        if(index < listaItens.length - 1){
-            conteudo += `<div class="separador"></div>`;
-        }
+        <div class="item">
+            <div class="descricao">${item.descricao}</div>
+            <div class="valor">R$ ${item.valor.toFixed(2)}</div>
+        </div>
 
-    });
+        <div class="separador"></div>
+    `;
+});
 
     conteudo += `
         <hr>
