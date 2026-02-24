@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, session, send_file,
 import mysql.connector
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table
 from reportlab.lib.pagesizes import A4
 from openpyxl import Workbook
@@ -27,6 +28,10 @@ def conectar():
     except Exception as e:
         print("ERRO GRAVE AO CONECTAR NO MYSQL:", e)
         return None
+
+def agora_amazonas():
+    return datetime.now(ZoneInfo("America/Manaus"))
+    
 # =========================
 # LOGIN
 # =========================
@@ -226,7 +231,7 @@ def salvar_venda():
                 item["id"],
                 1,
                 item["valor"],
-                datetime.now()
+                agora_amazonas()
             ))
 
         conn.commit()
@@ -236,7 +241,7 @@ def salvar_venda():
             "alertas": alertas,
             "registro": venda_registro,
             "numero_venda": numero_venda,
-            "data_venda": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            "data_venda": agora_amazonas().strftime("%d/%m/%Y %H:%M:%S")
         })
 
     except Exception as e:
