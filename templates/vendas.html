@@ -251,29 +251,39 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
                 padding:5px;
                 text-align:center;
             }
-
+            
             @page{
                 margin:0;
             }
-
+            
             .item{
-                text-align:center; /* 🔥 Produto centralizado */
-                margin:0;
+                text-align:center;
+                padding:2.5cm 0;
             }
-
+            
+            .descricao{
+                font-size:18px;
+                font-weight:bold;
+            }
+            
+            .valor{
+                font-size:16px;
+                margin-top:5px;
+            }
+            
             .separador{
                 border-top:1px dashed black;
-                margin:2.5cm 0; /* 🔥 2,5cm acima e abaixo */
+                margin:0;
             }
-
+            
             .total{
                 font-weight:bold;
                 margin-top:10px;
             }
-
+            
             hr{
-                   border-top:1px dashed black;
-                    margin:5px 0;
+                border-top:1px dashed black;
+                margin:5px 0;
             }
         </style>
     </head>
