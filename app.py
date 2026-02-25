@@ -409,3 +409,36 @@ def relatorio_excel():
 def health():
     return "OK", 200
 
+
+# =========================
+# CRIAR USUÁRIO ADMIN (TEMPORÁRIO)
+# =========================
+@app.route("/criar_admin_temporario")
+def criar_admin_temporario():
+    conn = conectar()
+    if not conn:
+        return "Erro ao conectar no banco"
+
+    c = conn.cursor()
+
+    # Verifica se já existe
+    c.execute("SELECT id FROM usuarios WHERE usuario = %s", ("admin",))
+    existe = c.fetchone()
+
+    if existe:
+        conn.close()
+        return "Usuário admin já existe!"
+
+    from werkzeug.security import generate_password_hash
+    senha_hash = generate_password_hash("123456")
+
+    c.execute(
+        "INSERT INTO usuarios (usuario, senha) VALUES (%s, %s)",
+        ("admin", senha_hash)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return "Usuário admin criado com sucesso!"
+
