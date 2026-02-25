@@ -1,6 +1,7 @@
 
 from flask import Flask, render_template, request, redirect, session, send_file, flash, jsonify
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -15,18 +16,14 @@ app.secret_key = "quermesse_secret"
 # =========================
 # CONEXÃO MYSQL
 # =========================
-def conectar():
+ddef conectar():
     try:
-        conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME"),
-            port=int(os.getenv("DB_PORT", 3306))
+        conn = psycopg2.connect(
+            os.getenv("DATABASE_URL")
         )
         return conn
     except Exception as e:
-        print("ERRO GRAVE AO CONECTAR NO MYSQL:", e)
+        print("ERRO GRAVE AO CONECTAR NO POSTGRES:", e)
         return None
 
 def agora_amazonas():
@@ -54,7 +51,7 @@ def autenticar():
     if not conn:
         return "Erro ao conectar no banco", 500
 
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     c.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
     user = c.fetchone()
     conn.close()
@@ -115,7 +112,7 @@ def produtos():
         return redirect("/")
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
         descricao = request.form["descricao"]
@@ -150,7 +147,7 @@ def vendas():
         return redirect("/")
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     produtos = c.fetchall()
     conn.close()
@@ -170,13 +167,12 @@ def salvar_venda():
         return jsonify({"erro": "Nenhum item na venda"}), 400
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        conn.start_transaction()
-
+        
         # 🔢 GERAR NÚMERO DA VENDA ANTES DE USAR
-        c.execute("SELECT IFNULL(MAX(numero_venda),0) + 1 AS prox FROM vendas")
+        c.execute("SELECT COALESCE(MAX(numero_venda),0) + 1 AS prox FROM vendas")
         resultado = c.fetchone()
         numero_venda = resultado["prox"] if resultado else 1
 
@@ -204,7 +200,7 @@ def salvar_venda():
 
             c.execute("""
                 SELECT descricao, estoque_atual,
-                       IFNULL(estoque_minimo,5) as estoque_minimo
+                       COALESCE(estoque_minimo,5) as estoque_minimo
                 FROM produtos
                 WHERE id = %s
             """, (produto_id,))
@@ -264,11 +260,10 @@ def cancelar_venda():
         return jsonify({"erro": "Número da venda não informado"}), 400
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        conn.start_transaction()
-
+        
         # 🔎 Buscar itens da venda
         c.execute("""
             SELECT produto_id, quantidade
@@ -316,7 +311,7 @@ def editar_produto(id):
         return redirect("/")
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
         descricao = request.form["descricao"]
@@ -353,7 +348,7 @@ def relatorios():
         return redirect("/")
 
     conn = conectar()
-    c = conn.cursor(dictionary=True)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     produtos = c.fetchall()
