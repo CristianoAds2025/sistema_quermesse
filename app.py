@@ -16,7 +16,7 @@ app.secret_key = "quermesse_secret"
 # =========================
 # CONEXÃO MYSQL
 # =========================
-ddef conectar():
+def conectar():
     try:
         conn = psycopg2.connect(
             os.getenv("DATABASE_URL")
