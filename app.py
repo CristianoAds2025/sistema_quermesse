@@ -319,14 +319,17 @@ def editar_produto(id):
         valor = float(request.form["valor"].replace(",", "."))
         estoque_inicial = int(request.form["estoque_inicial"])
 
-        # ⚠ Atualiza também estoque_atual proporcionalmente
+        # 👇 AQUI ESTÁ O AJUSTE
+        estoque_atual = estoque_inicial
+
         c.execute("""
             UPDATE produtos
             SET descricao = %s,
                 valor = %s,
-                estoque_inicial = %s
+                estoque_inicial = %s,
+                estoque_atual = %s
             WHERE id = %s
-        """, (descricao, valor, estoque_inicial, id))
+        """, (descricao, valor, estoque_inicial, estoque_atual, id))
 
         conn.commit()
         conn.close()
