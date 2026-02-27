@@ -1,4 +1,4 @@
-const CACHE_NAME = "quermesse-v2";
+const CACHE_NAME = "quermesse-v3";
 
 const urlsToCache = [
   "/",
