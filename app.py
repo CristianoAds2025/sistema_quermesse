@@ -35,7 +35,6 @@ def agora_amazonas():
 # =========================
 @app.route("/")
 def login():
-    session.pop('usuario', None)  # remove usuário da sessão
     return render_template("login.html")
 
 @app.route("/autenticar", methods=["GET", "POST"])
@@ -64,6 +63,11 @@ def autenticar():
     flash("Usuário ou senha inválidos", "danger")
     return redirect("/")
 
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+    
 # =========================
 # CADASTRO USUÁRIO
 # =========================
