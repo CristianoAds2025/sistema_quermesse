@@ -33,6 +33,13 @@
 {% block content %}{% endblock %}
 </div>
 
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/static/sw.js")
+    .then(() => console.log("Service Worker registrado"));
+}
+</script>
+  
 </body>
 </html>
 
