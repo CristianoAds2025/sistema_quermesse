@@ -23,7 +23,7 @@
   <td>{{ p.estoque_inicial }}</td>
   <td>{{ p.estoque_atual }}</td>
   <td>
-    <a href="/editar_produto/{{ p.id }}" class="btn btn-warning btn-sm">Editar</a>
+    <a href="/editar_produto/{{ p.id }}" class="btn btn-warning btn-sm"title="Editar"><i class="bi bi-pencil-square"></i></a>
     <form action="/zerar_estoque/{{ p.id }}" 
           method="POST" 
           style="display:inline-block;"
