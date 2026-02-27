@@ -39,6 +39,29 @@ if ("serviceWorker" in navigator) {
     .then(() => console.log("Service Worker registrado"));
 }
 </script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js')
+    .then(reg => {
+
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+
+            if (confirm("Nova versão disponível. Atualizar agora?")) {
+              newWorker.postMessage("SKIP_WAITING");
+              window.location.reload();
+            }
+          }
+        });
+      });
+
+    });
+}
+</script>
   
 </body>
 </html>
