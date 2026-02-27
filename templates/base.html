@@ -13,12 +13,17 @@
 </head>
 <body class="bg-light">
 
-<nav class="navbar navbar-dark bg-primary">
+<nav class="navbar navbar-dark bg-primary position-relative">
   <div class="container-fluid">
-    <span class="navbar-brand">Quermesse Online - Comunidade SFA</span>
-{% if session.get('usuario') %}
-    <a href="/logout" class="btn btn-danger">Sair</a>
-{% endif %}
+
+    <span class="navbar-brand position-absolute start-50 translate-middle-x">
+      Quermesse Online - Comunidade SFA
+    </span>
+
+    {% if session.get('usuario') %}
+      <a href="/logout" class="btn btn-danger ms-auto">Sair</a>
+    {% endif %}
+
   </div>
 </nav>
 
