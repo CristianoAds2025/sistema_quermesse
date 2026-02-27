@@ -341,6 +341,30 @@ def editar_produto(id):
     return render_template("editar_produto.html", produto=produto)
 
 # =========================
+# ZERAR ESTOQUE
+# =========================
+@app.route("/zerar_estoque/<int:id>", methods=["POST"])
+def zerar_estoque(id):
+    if "usuario" not in session:
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor()
+
+    # Zera apenas o estoque atual
+    c.execute("""
+        UPDATE produtos
+        SET estoque_atual = 0
+        WHERE id = %s
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    flash("Estoque zerado com sucesso!", "warning")
+    return redirect("/produtos")
+
+# =========================
 # RELATÓRIOS
 # =========================
 @app.route("/relatorios")
