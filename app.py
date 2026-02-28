@@ -91,7 +91,7 @@ def cadastro():
             return redirect("/cadastro")
 
         # ✅ Se não existir, cadastra
-        c.execute("INSERT INTO usuarios (usuario, senha, perfil) VALUES (%s,%s,%s)", (usuario, senha, perfil))
+        c.execute("INSERT INTO usuarios (usuario, senha) VALUES (%s,%s)", (usuario, senha))
         conn.commit()
         conn.close()
 
@@ -100,46 +100,6 @@ def cadastro():
 
     return render_template("cadastro.html")
 
-# =========================
-# USUÁRIO
-# =========================
-@app.route("/usuarios", methods=["GET", "POST"])
-def usuarios():
-
-    if "usuario" not in session:
-        return redirect("/")
-
-    if session.get("perfil") != "administrador":
-        return redirect("/dashboard")
-
-    conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
-    if request.method == "POST":
-        usuario = request.form["usuario"]
-        senha = generate_password_hash(request.form["senha"])
-        perfil = request.form["perfil"]
-
-        # Verifica se já existe
-        c.execute("SELECT id FROM usuarios WHERE usuario=%s", (usuario,))
-        if c.fetchone():
-            flash("Usuário já existe!", "danger")
-        else:
-            c.execute("""
-                INSERT INTO usuarios (usuario, senha, perfil)
-                VALUES (%s, %s, %s)
-            """, (usuario, senha, perfil))
-            conn.commit()
-            flash("Usuário cadastrado com sucesso!", "success")
-
-    # 🔎 Buscar usuários para a tabela
-    c.execute("SELECT id, usuario, perfil FROM usuarios ORDER BY id")
-    lista = c.fetchall()
-
-    conn.close()
-
-    return render_template("cadastro.html", usuarios=usuarios)
-    
 # =========================
 # DASHBOARD
 # =========================
@@ -492,3 +452,4 @@ def relatorio_excel():
 @app.route("/health")
 def health():
     return "OK", 200
+
