@@ -88,13 +88,22 @@
                             <td>{{ u.id }}</td>
                             <td>{{ u.usuario }}</td>
                             <td>{{ u.perfil }}</td>
-                            <td>
-                                <a href="#" class="btn btn-sm btn-primary">
+                           <td>
+                               <a href="/editar_usuario/{{ u.id }}" 
+                                   class="btn btn-sm btn-primary">
                                     Editar
                                 </a>
-                                <a href="#" class="btn btn-sm btn-danger">
-                                    Excluir
-                                </a>
+                            
+                                <form action="/excluir_usuario/{{ u.id }}" 
+                                      method="POST" 
+                                      style="display:inline-block;"
+                                      onsubmit="return confirm('Deseja realmente excluir este usuário?');">
+                            
+                                    <button type="submit" 
+                                            class="btn btn-sm btn-danger">
+                                        Excluir
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% endfor %}
