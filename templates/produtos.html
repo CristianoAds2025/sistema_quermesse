@@ -1,44 +1,134 @@
 
 {% extends 'base.html' %}
 {% block content %}
-<a href="/dashboard" class="btn btn-secondary mb-3">
-    ← Voltar
-</a>
-<h3>Cadastrar Produto</h3>
-<form method="post">
-<input class="form-control mb-2" name="descricao" placeholder="Descrição do Produto">
-<input class="form-control mb-2" name="valor" placeholder="Valor Unitário">
-<input class="form-control mb-2" name="estoque_inicial" placeholder="Estoque Inicial">
-<button class="btn btn-success">Salvar</button>
-</form>
-<hr>
-<h3>Lista de Produtos Cadastrados</h3>
-<table class="table table-striped table-bordered">
-<tr class="table-dark"><th>ID</th><th>Descrição do Produto</th><th>Valor Unitário</th><th>Estoque Inicial</th><th>Estoque Atual</th><th>Ações</th></tr>
-{% for p in produtos %}
-<tr>
-  <td>{{ p.id }}</td>
-  <td>{{ p.descricao }}</td>
-  <td>R$ {{ "{:,.2f}".format(p.valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
-  <td>{{ p.estoque_inicial }}</td>
-  <td>{{ p.estoque_atual }}</td>
-  <td>
-    <a href="/editar_produto/{{ p.id }}"                     class="btn btn-sm btn-primary"title="Editar"><i class="bi bi-pencil-square"></i></a>
-    <form action="/zerar_estoque/{{ p.id }}" 
-      method="POST" 
-      style="display:inline-block;"
-      onsubmit="return confirm('Deseja realmente zerar o estoque deste produto?');">
 
-    <button type="submit" 
-            class="btn btn-sm btn-outline-danger"
-            title="Zerar Estoque">
-        <i class="bi bi-arrow-counterclockwise"></i>
-    </button>
+<div class="container mt-4">
 
-</form>
+    <a href="/dashboard" class="btn btn-secondary mb-3">
+        ← Voltar
+    </a>
 
-  </td>
-</tr>
-{% endfor %}
-</table>
+    <!-- Abas -->
+    <ul class="nav nav-tabs" id="produtoTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active"
+                    id="novo-produto-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#novo-produto"
+                    type="button"
+                    role="tab">
+                Novo Produto
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link"
+                    id="lista-produto-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#lista-produto"
+                    type="button"
+                    role="tab">
+                Produtos Cadastrados
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3">
+
+        <!-- ========================= -->
+        <!-- ABA 1 - CADASTRO PRODUTO -->
+        <!-- ========================= -->
+        <div class="tab-pane fade show active" id="novo-produto" role="tabpanel">
+
+            <div class="card shadow p-4">
+                <h3 class="mb-4">Cadastrar Produto</h3>
+
+                <form method="post">
+                    <input class="form-control mb-3"
+                           name="descricao"
+                           placeholder="Descrição do Produto"
+                           required>
+
+                    <input class="form-control mb-3"
+                           name="valor"
+                           placeholder="Valor Unitário"
+                           required>
+
+                    <input class="form-control mb-3"
+                           name="estoque_inicial"
+                           placeholder="Estoque Inicial"
+                           required>
+
+                    <div class="d-grid">
+                        <button class="btn btn-success">Salvar</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- ========================= -->
+        <!-- ABA 2 - LISTAGEM PRODUTOS -->
+        <!-- ========================= -->
+        <div class="tab-pane fade" id="lista-produto" role="tabpanel">
+
+            <div class="card shadow p-4">
+                <h3 class="mb-3">Lista de Produtos Cadastrados</h3>
+
+                <table class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Descrição</th>
+                            <th>Valor Unitário</th>
+                            <th>Estoque Inicial</th>
+                            <th>Estoque Atual</th>
+                            <th style="width:150px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in produtos %}
+                        <tr>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.descricao }}</td>
+                            <td>
+                                R$ {{ "{:,.2f}".format(p.valor)
+                                .replace(",", "X")
+                                .replace(".", ",")
+                                .replace("X", ".") }}
+                            </td>
+                            <td>{{ p.estoque_inicial }}</td>
+                            <td>{{ p.estoque_atual }}</td>
+                            <td>
+
+                                <a href="/editar_produto/{{ p.id }}"
+                                   class="btn btn-sm btn-primary"
+                                   title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                <form action="/zerar_estoque/{{ p.id }}"
+                                      method="POST"
+                                      style="display:inline-block;"
+                                      onsubmit="return confirm('Deseja realmente zerar o estoque deste produto?');">
+
+                                    <button type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Zerar Estoque">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
 {% endblock %}
