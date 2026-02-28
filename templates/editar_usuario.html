@@ -11,10 +11,16 @@
                    value="{{ usuario.usuario }}"
                    required>
 
-            <input class="form-control mb-3"
-                   name="perfil"
-                   value="{{ usuario.perfil }}"
-                   required>
+            <select class="form-select mb-3" name="perfil" required>
+                <option value="administrador"
+                    {% if usuario.perfil == "administrador" %}selected{% endif %}>
+                    Administrador
+                </option>
+                <option value="usuario"
+                    {% if usuario.perfil == "usuario" %}selected{% endif %}>
+                    Usuário
+                </option>
+            </select>
 
             <div class="d-grid gap-2">
                 <button class="btn btn-success">Salvar Alterações</button>
