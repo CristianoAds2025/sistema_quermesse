@@ -83,6 +83,7 @@ def cadastro():
     if request.method == "POST":
         usuario = request.form["usuario"]
         senha = generate_password_hash(request.form["senha"])
+        perfil = request.form["perfil"]
 
         # Verifica se já existe
         c.execute("SELECT id FROM usuarios WHERE usuario = %s", (usuario,))
