@@ -72,36 +72,40 @@ def logout():
 # =========================
 # CADASTRO USUÁRIO
 # =========================
-@app.route("/cadastro", methods=["GET","POST"])
+@app.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
+    if not session.get("usuario"):
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
     if request.method == "POST":
         usuario = request.form["usuario"]
         senha = generate_password_hash(request.form["senha"])
 
-        conn = conectar()
-        c = conn.cursor()
-
-        # 🔎 Verifica se usuário já existe
+        # Verifica se já existe
         c.execute("SELECT id FROM usuarios WHERE usuario = %s", (usuario,))
-        usuario_existente = c.fetchone()
-
-        if usuario_existente:
+        if c.fetchone():
             conn.close()
             flash("Usuário já cadastrado!", "danger")
             return redirect("/cadastro")
 
-        # ✅ Se não existir, cadastra
-        c.execute("INSERT INTO usuarios (usuario, senha, perfil) VALUES (%s,%s,%s)", (usuario, senha, perfil))
+        c.execute(
+            "INSERT INTO usuarios (usuario, senha) VALUES (%s, %s)",
+            (usuario, senha)
+        )
         conn.commit()
         flash("Usuário cadastrado com sucesso!", "success")
+        conn.close()
         return redirect("/cadastro")
 
-        # 🔹 LISTA DE USUÁRIOS
-        c.execute("SELECT id, usuario, perfil FROM usuarios ORDER BY usuario ASC")
-        usuarios = c.fetchall()
-        conn.close()
+    # 🔹 IMPORTANTE: SEMPRE EXECUTA NO GET
+    c.execute("SELECT id, usuario FROM usuarios ORDER BY usuario ASC")
+    usuarios = c.fetchall()
+    conn.close()
 
-        return render_template("cadastro.html", usuarios=usuarios)
+    return render_template("cadastro.html", usuarios=usuarios)
    
 # =========================
 # DASHBOARD
