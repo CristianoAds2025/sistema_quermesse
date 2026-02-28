@@ -57,7 +57,8 @@ def autenticar():
     conn.close()
 
     if user and check_password_hash(user["senha"], senha):
-        session["usuario"] = usuario
+        session["usuario"] = user["usuario"]
+        session["perfil"] = user.get("perfil", "usuario")
         return redirect("/dashboard")
 
     flash("Usuário ou senha inválidos", "danger")
@@ -115,6 +116,9 @@ def dashboard():
 def produtos():
     if "usuario" not in session:
         return redirect("/")
+
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -312,8 +316,8 @@ def cancelar_venda():
 # =========================
 @app.route("/editar_produto/<int:id>", methods=["GET", "POST"])
 def editar_produto(id):
-    if "usuario" not in session:
-        return redirect("/")
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -352,8 +356,8 @@ def editar_produto(id):
 # =========================
 @app.route("/zerar_estoque/<int:id>", methods=["POST"])
 def zerar_estoque(id):
-    if "usuario" not in session:
-        return redirect("/")
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
 
     conn = conectar()
     c = conn.cursor()
@@ -379,6 +383,9 @@ def relatorios():
     if "usuario" not in session:
         return redirect("/")
 
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
+
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
@@ -401,6 +408,9 @@ def relatorios():
 # =========================
 @app.route("/relatorio_pdf")
 def relatorio_pdf():
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
+        
     conn = conectar()
     c = conn.cursor()
     c.execute("SELECT descricao, estoque_atual FROM produtos")
@@ -420,6 +430,9 @@ def relatorio_pdf():
 # =========================
 @app.route("/relatorio_excel")
 def relatorio_excel():
+    if session.get("perfil") != "administrador":
+    return redirect("/dashboard")
+    
     conn = conectar()
     c = conn.cursor()
     c.execute("SELECT descricao, estoque_atual FROM produtos")
