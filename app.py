@@ -93,13 +93,16 @@ def cadastro():
         # ✅ Se não existir, cadastra
         c.execute("INSERT INTO usuarios (usuario, senha, perfil) VALUES (%s,%s,%s)", (usuario, senha, perfil))
         conn.commit()
+        flash("Usuário cadastrado com sucesso!", "success")
+        return redirect("/cadastro")
+
+        # 🔹 LISTA DE USUÁRIOS
+        c.execute("SELECT id, usuario, perfil FROM usuarios ORDER BY usuario ASC")
+        usuarios = c.fetchall()
         conn.close()
 
-        flash("Usuário cadastrado com sucesso!", "success")
-        return redirect("/")
-
-    return render_template("cadastro.html")
-
+        return render_template("cadastro.html", usuarios=usuarios)
+   
 # =========================
 # DASHBOARD
 # =========================
