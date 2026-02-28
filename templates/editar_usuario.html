@@ -6,11 +6,12 @@
         <h3 class="mb-3">Editar Usuário</h3>
 
         <form method="post">
+
             <input class="form-control mb-3"
                    name="usuario"
                    value="{{ usuario.usuario }}"
                    required>
-
+        
             <select class="form-select mb-3" name="perfil" required>
                 <option value="administrador"
                     {% if usuario.perfil == "administrador" %}selected{% endif %}>
@@ -21,11 +22,17 @@
                     Usuário
                 </option>
             </select>
-
+        
+            <input type="password"
+                   class="form-control mb-3"
+                   name="senha"
+                   placeholder="Nova senha (deixe em branco para manter a atual)">
+        
             <div class="d-grid gap-2">
                 <button class="btn btn-success">Salvar Alterações</button>
                 <a href="/cadastro" class="btn btn-secondary">Cancelar</a>
             </div>
+        
         </form>
     </div>
 </div>
