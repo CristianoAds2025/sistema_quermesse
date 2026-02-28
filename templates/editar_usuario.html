@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card shadow p-4">
+        <h3 class="mb-3">Editar Usuário</h3>
+
+        <form method="post">
+            <input class="form-control mb-3"
+                   name="usuario"
+                   value="{{ usuario.usuario }}"
+                   required>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-success">Salvar Alterações</button>
+                <a href="/cadastro" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
