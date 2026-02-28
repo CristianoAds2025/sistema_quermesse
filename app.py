@@ -431,7 +431,7 @@ def relatorio_pdf():
 @app.route("/relatorio_excel")
 def relatorio_excel():
     if session.get("perfil") != "administrador":
-    return redirect("/dashboard")
+        return redirect("/dashboard")
     
     conn = conectar()
     c = conn.cursor()
