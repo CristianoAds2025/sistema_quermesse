@@ -2,31 +2,107 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
-        <div class="card shadow p-4">
+<div class="container mt-4">
 
-            <h3 class="text-center mb-4">Novo Usuário</h3>
+    <!-- Abas -->
+    <ul class="nav nav-tabs" id="cadastroTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" 
+                    id="novo-tab" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#novo" 
+                    type="button" 
+                    role="tab">
+                Novo Usuário
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" 
+                    id="lista-tab" 
+                    data-bs-toggle="tab" 
+                    data-bs-target="#lista" 
+                    type="button" 
+                    role="tab">
+                Usuários Cadastrados
+            </button>
+        </li>
+    </ul>
 
-            <form method="post">
-                <input class="form-control mb-2" name="usuario" placeholder="Usuário (CPF: somente números)" required>
+    <div class="tab-content mt-3">
 
-                <input type="password" class="form-control mb-2" name="senha" placeholder="Senha" required>
+        <!-- ========================= -->
+        <!-- ABA 1 - CADASTRO (ATUAL) -->
+        <!-- ========================= -->
+        <div class="tab-pane fade show active" id="novo" role="tabpanel">
 
-                <!-- 🔐 NOVO CAMPO PERFIL -->
-                <select class="form-select mb-3" name="perfil" required>
-                    <option value="" disabled selected>Selecione o Perfil</option>
-                    <option value="administrador">Administrador</option>
-                    <option value="usuario">Usuário</option>
-                </select>
+            <div class="card shadow p-4">
+                <h3 class="text-center mb-4">Novo Usuário</h3>
 
-                <div class="d-grid gap-2">
-                    <button class="btn btn-success w-100">Cadastrar</button>
-                    <a href="/dashboard" class="btn btn-dark w-100">Voltar</a>
-                </div>    
-             </form>
+                <form method="post">
+                    <input class="form-control mb-2" 
+                           name="usuario" 
+                           placeholder="Usuário (CPF: somente números)" 
+                           required>
+
+                    <input type="password" 
+                           class="form-control mb-2" 
+                           name="senha" 
+                           placeholder="Senha" 
+                           required>
+
+                    <select class="form-select mb-3" name="perfil" required>
+                        <option value="" disabled selected>Selecione o Perfil</option>
+                        <option value="administrador">Administrador</option>
+                        <option value="usuario">Usuário</option>
+                    </select>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success w-100">Cadastrar</button>
+                        <a href="/dashboard" class="btn btn-dark w-100">Voltar</a>
+                    </div>
+                </form>
+            </div>
 
         </div>
+
+        <!-- ========================= -->
+        <!-- ABA 2 - LISTAGEM -->
+        <!-- ========================= -->
+        <div class="tab-pane fade" id="lista" role="tabpanel">
+
+            <div class="card shadow p-4">
+                <h4 class="mb-3">Usuários Cadastrados</h4>
+
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th style="width:150px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td>{{ u.id }}</td>
+                            <td>{{ u.usuario }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-primary">
+                                    Editar
+                                </a>
+                                <a href="#" class="btn btn-sm btn-danger">
+                                    Excluir
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+
     </div>
 </div>
 
