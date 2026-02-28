@@ -91,7 +91,7 @@ def cadastro():
             return redirect("/cadastro")
 
         # ✅ Se não existir, cadastra
-        c.execute("INSERT INTO usuarios (usuario, senha) VALUES (%s,%s)", (usuario, senha))
+        c.execute("INSERT INTO usuarios (usuario, senha, perfil) VALUES (%s,%s,%s)", (usuario, senha, perfil))
         conn.commit()
         conn.close()
 
