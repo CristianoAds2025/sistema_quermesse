@@ -138,7 +138,7 @@ def usuarios():
 
     conn.close()
 
-    return render_template("cadastro.html", usuarios=lista)
+    return render_template("cadastro.html", usuarios=usuarios)
     
 # =========================
 # DASHBOARD
