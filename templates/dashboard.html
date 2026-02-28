@@ -9,21 +9,30 @@
             <h3 class="mb-4">Dashboard</h3>
 
             <div class="d-grid gap-3">
-                <a href="/produtos" class="btn btn-primary btn-lg py-3">
-                    Produtos
-                </a>
 
+                <!-- 👤 TODOS VEEM -->
                 <a href="/vendas" class="btn btn-success btn-lg py-3">
                     Vendas
+                </a>
+
+                <!-- 👑 SOMENTE ADMINISTRADOR -->
+                {% if session.get("perfil") == "administrador" %}
+
+                <a href="/produtos" class="btn btn-primary btn-lg py-3">
+                    Produtos
                 </a>
 
                 <a href="/relatorios" class="btn btn-info btn-lg py-3 text-white">
                     Relatórios
                 </a>
+
                 <a href="/cadastro" class="btn btn-dark btn-lg py-3">
                     Novo Usuário
                 </a>
-             </div>
+
+                {% endif %}
+
+            </div>
 
         </div>
     </div>
