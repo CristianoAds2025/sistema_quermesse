@@ -102,7 +102,7 @@ def cadastro():
         return redirect("/cadastro")
 
     # 🔹 IMPORTANTE: SEMPRE EXECUTA NO GET
-    c.execute("SELECT id, usuario FROM usuarios ORDER BY usuario ASC")
+    c.execute("SELECT id, usuario, perfil FROM usuarios ORDER BY usuario ASC")
     usuarios = c.fetchall()
     conn.close()
 
