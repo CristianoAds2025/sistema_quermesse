@@ -407,6 +407,75 @@ def relatorios():
     return render_template("relatorios.html", produtos=produtos, vendas=vendas)
 
 # =========================
+# EDITAR USUÁRIO
+# =========================    
+@app.route("/editar_usuario/<int:id>", methods=["GET","POST"])
+def editar_usuario(id):
+    if not session.get("usuario"):
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Busca usuário
+    c.execute("SELECT id, usuario FROM usuarios WHERE id = %s", (id,))
+    usuario = c.fetchone()
+
+    if not usuario:
+        conn.close()
+        flash("Usuário não encontrado.", "danger")
+        return redirect("/cadastro")
+
+    if request.method == "POST":
+        novo_usuario = request.form["usuario"]
+
+        # Atualiza apenas o nome
+        c.execute("UPDATE usuarios SET usuario = %s WHERE id = %s",
+                  (novo_usuario, id))
+        conn.commit()
+        conn.close()
+
+        flash("Usuário atualizado com sucesso!", "success")
+        return redirect("/cadastro")
+
+    conn.close()
+    return render_template("editar_usuario.html", usuario=usuario)
+
+# =========================
+# EXCLUIR USUÁRIO
+# =========================
+@app.route("/excluir_usuario/<int:id>", methods=["POST"])
+def excluir_usuario(id):
+    if not session.get("usuario"):
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Busca usuário a excluir
+    c.execute("SELECT usuario FROM usuarios WHERE id = %s", (id,))
+    usuario_excluir = c.fetchone()
+
+    if not usuario_excluir:
+        conn.close()
+        flash("Usuário não encontrado.", "danger")
+        return redirect("/cadastro")
+
+    # 🔒 NÃO permite excluir o próprio usuário logado
+    if usuario_excluir["usuario"] == session["usuario"]:
+        conn.close()
+        flash("Você não pode excluir o próprio usuário!", "danger")
+        return redirect("/cadastro")
+
+    # Exclui
+    c.execute("DELETE FROM usuarios WHERE id = %s", (id,))
+    conn.commit()
+    conn.close()
+
+    flash("Usuário excluído com sucesso!", "success")
+    return redirect("/cadastro")
+
+# =========================
 # PDF
 # =========================
 @app.route("/relatorio_pdf")
