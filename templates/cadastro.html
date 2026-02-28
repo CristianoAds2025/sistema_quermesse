@@ -9,8 +9,16 @@
             <h3 class="text-center mb-4">Novo Usuário</h3>
 
             <form method="post">
-                <input class="form-control mb-2" name="usuario" placeholder="Usuário (CPF: somente números)">
-                <input type="password" class="form-control mb-2" name="senha" placeholder="Senha">
+                <input class="form-control mb-2" name="usuario" placeholder="Usuário (CPF: somente números)" required>
+
+                <input type="password" class="form-control mb-2" name="senha" placeholder="Senha" required>
+
+                <!-- 🔐 NOVO CAMPO PERFIL -->
+                <select class="form-select mb-3" name="perfil" required>
+                    <option value="" disabled selected>Selecione o Perfil</option>
+                    <option value="administrador">Administrador</option>
+                    <option value="usuario">Usuário</option>
+                </select>
 
                 <div class="d-grid gap-2">
                     <button class="btn btn-success w-100">Cadastrar</button>
