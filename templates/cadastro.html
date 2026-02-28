@@ -2,77 +2,31 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="container mt-4">
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow p-4">
 
-    <h3 class="mb-4">Gerenciamento de Usuários</h3>
+            <h3 class="text-center mb-4">Novo Usuário</h3>
 
-    <!-- Abas -->
-    <ul class="nav nav-tabs" id="usuarioTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="cadastro-tab" data-bs-toggle="tab"
-                data-bs-target="#cadastro" type="button" role="tab">
-                Cadastrar Usuário
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="lista-tab" data-bs-toggle="tab"
-                data-bs-target="#lista" type="button" role="tab">
-                Listar Usuários
-            </button>
-        </li>
-    </ul>
+            <form method="post">
+                <input class="form-control mb-2" name="usuario" placeholder="Usuário (CPF: somente números)" required>
 
-    <!-- Conteúdo das abas -->
-    <div class="tab-content border border-top-0 p-4">
+                <input type="password" class="form-control mb-2" name="senha" placeholder="Senha" required>
 
-        <!-- Aba Cadastro -->
-        <div class="tab-pane fade show active" id="cadastro" role="tabpanel">
-            <form method="POST">
-                <input type="text" name="usuario" class="form-control mb-3" placeholder="Usuário" required>
-                <input type="password" name="senha" class="form-control mb-3" placeholder="Senha" required>
-
-                <select name="perfil" class="form-select mb-3">
+                <!-- 🔐 NOVO CAMPO PERFIL -->
+                <select class="form-select mb-3" name="perfil" required>
+                    <option value="" disabled selected>Selecione o Perfil</option>
+                    <option value="administrador">Administrador</option>
                     <option value="usuario">Usuário</option>
-                    <option value="admin">Administrador</option>
                 </select>
 
-                <button type="submit" class="btn btn-success">
-                    Cadastrar
-                </button>
-            </form>
-        </div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-success w-100">Cadastrar</button>
+                    <a href="/dashboard" class="btn btn-dark w-100">Voltar</a>
+                </div>    
+             </form>
 
-        <!-- Aba Lista -->
-        <div class="tab-pane fade" id="lista" role="tabpanel">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Usuário</th>
-                        <th>Perfil</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for u in usuarios %}
-                    <tr>
-                        <td>{{ u.id }}</td>
-                        <td>{{ u.usuario }}</td>
-                        <td>{{ u.perfil }}</td>
-                        <td>
-                            <a href="/editar_usuario/{{ u.id }}" class="btn btn-sm btn-primary">Editar</a>
-                            <a href="/excluir_usuario/{{ u.id }}" 
-                               class="btn btn-sm btn-danger"
-                               onclick="return confirm('Confirma exclusão?')">
-                               Excluir
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
-
     </div>
 </div>
 
