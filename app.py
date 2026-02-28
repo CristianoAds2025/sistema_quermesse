@@ -423,7 +423,7 @@ def editar_usuario(id):
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Busca usuário
-    c.execute("SELECT id, usuario FROM usuarios WHERE id = %s", (id,))
+    c.execute("SELECT id, usuario, perfil FROM usuarios WHERE id = %s", (id,))
     usuario = c.fetchone()
 
     if not usuario:
@@ -433,10 +433,13 @@ def editar_usuario(id):
 
     if request.method == "POST":
         novo_usuario = request.form["usuario"]
+        novo_perfil = request.form["perfil"]  # 👈 ADICIONADO
 
-        # Atualiza apenas o nome
-        c.execute("UPDATE usuarios SET usuario = %s WHERE id = %s",
-                  (novo_usuario, id))
+        c.execute(
+            "UPDATE usuarios SET usuario = %s, perfil = %s WHERE id = %s",
+            (novo_usuario, novo_perfil, id)
+        )
+
         conn.commit()
         conn.close()
 
