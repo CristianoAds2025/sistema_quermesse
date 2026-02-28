@@ -433,16 +433,24 @@ def editar_usuario(id):
 
     if request.method == "POST":
         novo_usuario = request.form["usuario"]
-        novo_perfil = request.form["perfil"]  # 👈 ADICIONADO
-
-        c.execute(
-            "UPDATE usuarios SET usuario = %s, perfil = %s WHERE id = %s",
-            (novo_usuario, novo_perfil, id)
-        )
-
+        novo_perfil = request.form["perfil"]
+        nova_senha = request.form["senha"]
+    
+        if nova_senha:
+            senha_hash = generate_password_hash(nova_senha)
+            c.execute(
+                "UPDATE usuarios SET usuario = %s, perfil = %s, senha = %s WHERE id = %s",
+                (novo_usuario, novo_perfil, senha_hash, id)
+            )
+        else:
+            c.execute(
+                "UPDATE usuarios SET usuario = %s, perfil = %s WHERE id = %s",
+                (novo_usuario, novo_perfil, id)
+            )
+    
         conn.commit()
         conn.close()
-
+    
         flash("Usuário atualizado com sucesso!", "success")
         return redirect("/cadastro")
 
