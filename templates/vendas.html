@@ -163,9 +163,11 @@ function atualizarListaVisual(){
 function adicionarProduto(){
 
     const select = document.getElementById("produto");
-    const quantidade = parseInt(document.getElementById("quantidade").value);
+    const quantidadeInput = document.getElementById("quantidade").value;
 
-    if(!quantidade || quantidade < 1){
+    const quantidade = parseInt(quantidadeInput);
+
+    if(isNaN(quantidade) || quantidade < 1){
         alert("Informe quantidade válida");
         return;
     }
@@ -173,9 +175,15 @@ function adicionarProduto(){
     const option = select.options[select.selectedIndex];
 
     const id = option.value;
-    const descricao = option.dataset.descricao;
-    const valor = parseFloat(option.dataset.valor);
-    const estoqueDisponivel = parseInt(option.dataset.estoque);
+
+    const descricao = option.getAttribute("data-descricao");
+    const valor = parseFloat(option.getAttribute("data-valor"));
+    const estoqueDisponivel = parseInt(option.getAttribute("data-estoque"));
+
+    if(!descricao || isNaN(valor) || isNaN(estoqueDisponivel)){
+        alert("Erro ao ler dados do produto.");
+        return;
+    }
 
     if(!estoqueControle[id]){
         estoqueControle[id] = 0;
@@ -186,7 +194,7 @@ function adicionarProduto(){
         return;
     }
 
-    for(let i=0;i<quantidade;i++){
+    for(let i = 0; i < quantidade; i++){
         const item = {id, descricao, valor};
         itensVenda.push(item);
         totalVenda += valor;
@@ -196,7 +204,6 @@ function adicionarProduto(){
     atualizarListaVisual();
     document.getElementById("quantidade").value = "";
 }
-
 
 function salvarVenda(){
 
