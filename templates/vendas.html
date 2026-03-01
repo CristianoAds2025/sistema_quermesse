@@ -341,11 +341,13 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
     `;
 
     listaItens.forEach(item => {
-        conteudo += `
+    conteudo += `
+        <div class="item">
             <div>${item.descricao}</div>
             <div>R$ ${item.valor.toFixed(2)}</div>
-            <hr>
-        `;
+        </div>
+        <hr>
+    `;
     });
 
     conteudo += `
