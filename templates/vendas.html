@@ -103,6 +103,63 @@ window.itensUltimaVenda = [];
 window.numeroVendaAtual = null;
 window.dataVendaAtual = null;
 
+function atualizarListaVisual(){
+
+    const lista = document.getElementById("listaProdutos");
+    lista.innerHTML = "";
+
+    let agrupado = {};
+
+    itensVenda.forEach(item => {
+
+        if(!agrupado[item.id]){
+            agrupado[item.id] = {
+                descricao: item.descricao,
+                valor: item.valor,
+                quantidade: 0
+            };
+        }
+
+        agrupado[item.id].quantidade += 1;
+    });
+
+    Object.keys(agrupado).forEach(id => {
+
+        const produto = agrupado[id];
+        const totalItem = produto.quantidade * produto.valor;
+
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        li.innerHTML = `
+            <span>
+                ${produto.quantidade}x ${produto.descricao}
+                <br>
+                <small>Total: R$ ${totalItem.toFixed(2)}</small>
+            </span>
+            <button class="btn btn-sm btn-danger">X</button>
+        `;
+
+        li.querySelector("button").addEventListener("click", function(){
+
+            const index = itensVenda.findIndex(i => i.id == id);
+
+            if(index > -1){
+                totalVenda -= produto.valor;
+                estoqueControle[id] -= 1;
+                itensVenda.splice(index,1);
+            }
+
+            atualizarListaVisual();
+        });
+
+        lista.appendChild(li);
+    });
+
+    document.getElementById("valorTotal").innerText =
+        totalVenda.toFixed(2);
+}
+    
 function adicionarProduto(){
 
     const select = document.getElementById("produto");
