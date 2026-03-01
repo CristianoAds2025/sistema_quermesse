@@ -103,61 +103,38 @@ window.itensUltimaVenda = [];
 window.numeroVendaAtual = null;
 window.dataVendaAtual = null;
 
-function atualizarListaVisual(){
+function atualizarEstoqueVisual() {
 
-    const lista = document.getElementById("listaProdutos");
-    lista.innerHTML = "";
+    fetch("/estoque_atual")
+        .then(response => response.json())
+        .then(data => {
 
-    let agrupado = {};
+            const select = document.getElementById("produto");
 
-    itensVenda.forEach(item => {
+            data.forEach(produto => {
 
-        if(!agrupado[item.id]){
-            agrupado[item.id] = {
-                descricao: item.descricao,
-                valor: item.valor,
-                quantidade: 0
-            };
-        }
+                const id = produto[0];
+                const novoEstoque = produto[1];
 
-        agrupado[item.id].quantidade += 1;
-    });
+                for(let i = 0; i < select.options.length; i++){
 
-    Object.keys(agrupado).forEach(id => {
+                    if(select.options[i].value == id){
 
-        const produto = agrupado[id];
-        const totalItem = produto.quantidade * produto.valor;
+                        select.options[i].dataset.estoque = novoEstoque;
 
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
+                        const descricao = select.options[i].dataset.descricao;
+                        const valor = select.options[i].dataset.valor;
 
-        li.innerHTML = `
-            <span>
-                ${produto.quantidade}x ${produto.descricao}
-                <br>
-                <small>Total: R$ ${totalItem.toFixed(2)}</small>
-            </span>
-            <button class="btn btn-sm btn-danger">X</button>
-        `;
+                        select.options[i].text =
+                            `${descricao} - R$ ${parseFloat(valor).toFixed(2)} (Estoque: ${novoEstoque})`;
 
-        li.querySelector("button").addEventListener("click", function(){
+                        break;
+                    }
+                }
 
-            const index = itensVenda.findIndex(i => i.id == id);
+            });
 
-            if(index > -1){
-                totalVenda -= produto.valor;
-                estoqueControle[id] -= 1;
-                itensVenda.splice(index,1);
-            }
-
-            atualizarListaVisual();
         });
-
-        lista.appendChild(li);
-    });
-
-    document.getElementById("valorTotal").innerText =
-        totalVenda.toFixed(2);
 }
 
 
@@ -277,6 +254,8 @@ function salvarVenda(){
 
         imprimirCupom(window.itensUltimaVenda, janelaImpressao);
 
+        atualizarEstoqueVisual();
+        
         // Reset
         document.getElementById("listaProdutos").innerHTML = "";
         document.getElementById("valorTotal").innerText = "0.00";
@@ -286,7 +265,29 @@ function salvarVenda(){
     });
 }
 
+function atualizarEstoqueVisual() {
 
+    fetch("/estoque_atual")
+        .then(response => response.json())
+        .then(data => {
+
+            data.forEach(produto => {
+
+                let elemento = document.getElementById("estoque_" + produto[0]);
+
+                if(elemento){
+                    elemento.innerText = produto[1];
+
+                    if(produto[1] <= 0){
+                        elemento.classList.add("text-danger");
+                    }
+                }
+
+            });
+
+        });
+}
+    
 function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
 
     if(!listaItens || listaItens.length === 0){
