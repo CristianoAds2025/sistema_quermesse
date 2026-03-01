@@ -232,7 +232,7 @@ function salvarVenda(){
         window.itensUltimaVenda = [];
         let totalResumo = 0;
 
-        // 🔥 AGRUPAR PARA RESUMO
+        // 🔥 AGRUPAR PARA EXIBIÇÃO
         let agrupado = {};
 
         itensVenda.forEach(item => {
@@ -246,6 +246,9 @@ function salvarVenda(){
             }
 
             agrupado[item.id].quantidade += 1;
+
+            // 🔥 Mantém lista individual para impressão
+            window.itensUltimaVenda.push(item);
         });
 
         Object.keys(agrupado).forEach(id => {
@@ -265,14 +268,6 @@ function salvarVenda(){
 
             resumo.appendChild(li);
 
-            for(let i=0;i<produto.quantidade;i++){
-                window.itensUltimaVenda.push({
-                    id,
-                    descricao: produto.descricao,
-                    valor: produto.valor
-                });
-            }
-
             totalResumo += totalItem;
         });
 
@@ -284,7 +279,10 @@ function salvarVenda(){
         window.numeroVendaAtual = data.numero_venda;
         window.dataVendaAtual = data.data_venda;
 
-        imprimirCupom(window.itensUltimaVenda);
+        // 🔥 Aguarda a renderização antes de imprimir
+        setTimeout(() => {
+            imprimirCupom(window.itensUltimaVenda);
+        }, 200);
 
         // Reset
         document.getElementById("listaProdutos").innerHTML = "";
