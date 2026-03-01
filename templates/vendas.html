@@ -261,7 +261,10 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
     }
 
     let total = 0;
-    listaItens.forEach(i => total += i.valor);
+
+    listaItens.forEach(i => {
+        total += i.total;
+    });
 
     let janela = window.open('', '', 'width=300,height=800');
 
@@ -324,19 +327,23 @@ function imprimirCupom(listaItens = window.itensUltimaVenda){
         <hr>
     `;
 
+    // 🔥 Agora imprime cada unidade separadamente
     listaItens.forEach((item)=>{
 
-    conteudo += `
-        <div class="separador"></div>
+        for(let i = 0; i < item.quantidade; i++){
 
-        <div class="item">
-            <div class="descricao">${item.descricao}</div>
-            <div class="valor">R$ ${item.valor.toFixed(2)}</div>
-        </div>
+            conteudo += `
+                <div class="separador"></div>
 
-        <div class="separador"></div>
-    `;
-});
+                <div class="item">
+                    <div class="descricao">${item.descricao}</div>
+                    <div class="valor">R$ ${item.valor.toFixed(2)}</div>
+                </div>
+
+                <div class="separador"></div>
+            `;
+        }
+    });
 
     conteudo += `
         <hr>
