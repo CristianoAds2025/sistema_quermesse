@@ -101,6 +101,70 @@ let totalVenda = 0;
 let estoqueControle = {};
 window.itensUltimaVenda = [];
 
+function atualizarListaVisual(){
+
+    const lista = document.getElementById("listaProdutos");
+    lista.innerHTML = "";
+
+    // 🔥 Agrupar produtos
+    let agrupado = {};
+
+    itensVenda.forEach(item => {
+
+        if(!agrupado[item.id]){
+            agrupado[item.id] = {
+                descricao: item.descricao,
+                valor: item.valor,
+                quantidade: 0
+            };
+        }
+
+        agrupado[item.id].quantidade += 1;
+    });
+
+    // 🔥 Montar visual agrupado
+    Object.keys(agrupado).forEach(id => {
+
+        const produto = agrupado[id];
+        const totalItem = produto.quantidade * produto.valor;
+
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        li.innerHTML = `
+            <span>
+                ${produto.quantidade}x ${produto.descricao}
+                <br>
+                <small>Total: R$ ${totalItem.toFixed(2)}</small>
+            </span>
+            <button class="btn btn-sm btn-danger">X</button>
+        `;
+
+        // 🔥 Remover UMA unidade por clique
+        li.querySelector("button").addEventListener("click", function(){
+
+            const index = itensVenda.findIndex(i => i.id == id);
+
+            if(index > -1){
+                totalVenda -= produto.valor;
+                estoqueControle[id] -= 1;
+                itensVenda.splice(index,1);
+            }
+
+            document.getElementById("valorTotal").innerText =
+                totalVenda.toFixed(2);
+
+            atualizarListaVisual();
+        });
+
+        lista.appendChild(li);
+    });
+
+    document.getElementById("valorTotal").innerText =
+        totalVenda.toFixed(2);
+}
+
+
 function adicionarProduto(){
 
     const select = document.getElementById("produto");
@@ -127,69 +191,20 @@ function adicionarProduto(){
         return;
     }
 
-    // 🔥 Verifica se já existe o produto na lista
-    let itemExistente = itensVenda.find(i => i.id === id);
+    for(let i=0;i<quantidade;i++){
 
-    if(itemExistente){
+        const item = {id, descricao, valor};
+        itensVenda.push(item);
 
-        itemExistente.quantidade += quantidade;
-        itemExistente.total = itemExistente.quantidade * valor;
-
-    }else{
-
-        itensVenda.push({
-            id: id,
-            descricao: descricao,
-            valor: valor,
-            quantidade: quantidade,
-            total: valor * quantidade
-        });
+        totalVenda += valor;
+        estoqueControle[id] += 1;
     }
 
-    estoqueControle[id] += quantidade;
-
-    atualizarLista();
-
+    atualizarListaVisual();
     document.getElementById("quantidade").value = "";
 }
 
-function atualizarLista(){
 
-    const lista = document.getElementById("listaProdutos");
-    lista.innerHTML = "";
-
-    totalVenda = 0;
-
-    itensVenda.forEach((item, index) => {
-
-        totalVenda += item.total;
-
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
-
-        li.innerHTML = `
-            <span>
-                ${item.quantidade}x ${item.descricao}
-                <br>
-                <small>Total: R$ ${item.total.toFixed(2)}</small>
-            </span>
-            <button class="btn btn-sm btn-danger">X</button>
-        `;
-
-        li.querySelector("button").addEventListener("click", function(){
-
-            estoqueControle[item.id] -= item.quantidade;
-            itensVenda.splice(index, 1);
-
-            atualizarLista();
-        });
-
-        lista.appendChild(li);
-    });
-
-    document.getElementById("valorTotal").innerText = totalVenda.toFixed(2);
-}
-    
 function salvarVenda(){
 
     fetch("/salvar_venda", {
@@ -215,27 +230,54 @@ function salvarVenda(){
         resumo.innerHTML = "";
 
         window.itensUltimaVenda = [];
+        let totalResumo = 0;
 
-     let totalResumo = 0;
+        // 🔥 AGRUPAR PARA RESUMO
+        let agrupado = {};
 
-itensVenda.forEach(item => {
+        itensVenda.forEach(item => {
 
-    const li = document.createElement("li");
-    li.className = "list-group-item d-flex justify-content-between align-items-center";
+            if(!agrupado[item.id]){
+                agrupado[item.id] = {
+                    descricao: item.descricao,
+                    valor: item.valor,
+                    quantidade: 0
+                };
+            }
 
-    li.innerHTML = `
-        <span>${item.descricao} - R$ ${item.valor.toFixed(2)}</span>
-    `;
+            agrupado[item.id].quantidade += 1;
+        });
 
-    resumo.appendChild(li);
-    window.itensUltimaVenda.push(item);
+        Object.keys(agrupado).forEach(id => {
 
-    totalResumo += item.valor;
-});
+            const produto = agrupado[id];
+            const totalItem = produto.quantidade * produto.valor;
 
-// 🔥 Atualiza total visual
-document.getElementById("totalResumo").innerText =
-    "R$ " + totalResumo.toFixed(2);
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+            li.innerHTML = `
+                <span>
+                    ${produto.quantidade}x ${produto.descricao}
+                </span>
+                <strong>R$ ${totalItem.toFixed(2)}</strong>
+            `;
+
+            resumo.appendChild(li);
+
+            for(let i=0;i<produto.quantidade;i++){
+                window.itensUltimaVenda.push({
+                    id,
+                    descricao: produto.descricao,
+                    valor: produto.valor
+                });
+            }
+
+            totalResumo += totalItem;
+        });
+
+        document.getElementById("totalResumo").innerText =
+            "R$ " + totalResumo.toFixed(2);
 
         document.getElementById("registroVenda").style.display = "block";
 
@@ -244,6 +286,7 @@ document.getElementById("totalResumo").innerText =
 
         imprimirCupom(window.itensUltimaVenda);
 
+        // Reset
         document.getElementById("listaProdutos").innerHTML = "";
         document.getElementById("valorTotal").innerText = "0.00";
         itensVenda = [];
@@ -251,156 +294,8 @@ document.getElementById("totalResumo").innerText =
         totalVenda = 0;
     });
 }
-
-
-function imprimirCupom(listaItens = window.itensUltimaVenda){
-
-    if(!listaItens || listaItens.length === 0){
-        alert("Nenhum item para imprimir");
-        return;
-    }
-
-    let total = 0;
-
-    listaItens.forEach(i => {
-        total += i.total;
-    });
-
-    let janela = window.open('', '', 'width=300,height=800');
-
-    let conteudo = `
-    <html>
-    <head>
-        <style>
-            body{
-                font-family: monospace;
-                width:58mm;
-                margin:0;
-                padding:5px;
-                text-align:center;
-            }
-            
-            @page{
-                margin:0;
-            }
-            
-            .item{
-                text-align:center;
-                padding:1cm 0;
-            }
-            
-            .descricao{
-                font-size:18px;
-                font-weight:bold;
-            }
-            
-            .valor{
-                font-size:16px;
-                margin-top:5px;
-            }
-            
-            .separador{
-                border-top:1px dashed black;
-                margin:0;
-            }
-            
-            .total{
-                font-weight:bold;
-                margin-top:10px;
-            }
-            
-            hr{
-                border-top:1px dashed black;
-                margin:5px 0;
-            }
-        </style>
-    </head>
-    <body>
-
-        <h3>COMUNIDADE SÃO FRANCISCO DE ASSIS</h3>
-        <div>Quermesse</div>
-        <hr>
-
-        <div><strong>Venda Nº:</strong> ${window.numeroVendaAtual}</div>
-        <div><strong>Data:</strong> ${window.dataVendaAtual}</div>
-
-        <hr>
-    `;
-
-    // 🔥 Agora imprime cada unidade separadamente
-    listaItens.forEach((item)=>{
-
-        for(let i = 0; i < item.quantidade; i++){
-
-            conteudo += `
-                <div class="separador"></div>
-
-                <div class="item">
-                    <div class="descricao">${item.descricao}</div>
-                    <div class="valor">R$ ${item.valor.toFixed(2)}</div>
-                </div>
-
-                <div class="separador"></div>
-            `;
-        }
-    });
-
-    conteudo += `
-        <hr>
-        <div class="total">
-            TOTAL: R$ ${total.toFixed(2)}
-        </div>
-
-        <hr>
-        <div>Obrigado pela preferência!</div>
-
-    </body>
-    </html>
-    `;
-
-    janela.document.write(conteudo);
-    janela.document.close();
-    janela.print();
-}
-
-function cancelarVenda(){
-
-    if(!window.numeroVendaAtual){
-        alert("Nenhuma venda para cancelar");
-        return;
-    }
-
-    const confirmar = confirm("⚠ Tem certeza que deseja CANCELAR esta venda?\n\nO estoque será restaurado.");
-
-    if(!confirmar){
-        return;
-    }
-
-    fetch("/cancelar_venda", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            numero_venda: window.numeroVendaAtual
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-
-        if(data.erro){
-            alert(data.erro);
-            return;
-        }
-
-        alert("Venda cancelada com sucesso!");
-
-        // Esconde painel da venda
-        document.getElementById("registroVenda").style.display = "none";
-
-        window.numeroVendaAtual = null;
-        window.itensUltimaVenda = [];
-    });
-}
     
 </script>
 
 {% endblock %}
+
