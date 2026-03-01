@@ -153,7 +153,43 @@ function adicionarProduto(){
     document.getElementById("quantidade").value = "";
 }
 
+function atualizarLista(){
 
+    const lista = document.getElementById("listaProdutos");
+    lista.innerHTML = "";
+
+    totalVenda = 0;
+
+    itensVenda.forEach((item, index) => {
+
+        totalVenda += item.total;
+
+        const li = document.createElement("li");
+        li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+        li.innerHTML = `
+            <span>
+                ${item.quantidade}x ${item.descricao}
+                <br>
+                <small>Total: R$ ${item.total.toFixed(2)}</small>
+            </span>
+            <button class="btn btn-sm btn-danger">X</button>
+        `;
+
+        li.querySelector("button").addEventListener("click", function(){
+
+            estoqueControle[item.id] -= item.quantidade;
+            itensVenda.splice(index, 1);
+
+            atualizarLista();
+        });
+
+        lista.appendChild(li);
+    });
+
+    document.getElementById("valorTotal").innerText = totalVenda.toFixed(2);
+}
+    
 function salvarVenda(){
 
     fetch("/salvar_venda", {
