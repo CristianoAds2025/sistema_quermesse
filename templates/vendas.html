@@ -103,44 +103,6 @@ window.itensUltimaVenda = [];
 window.numeroVendaAtual = null;
 window.dataVendaAtual = null;
 
-function atualizarEstoqueVisual() {
-
-    fetch("/estoque_atual")
-        .then(response => response.json())
-        .then(data => {
-
-            const select = document.getElementById("produto");
-
-            data.forEach(produto => {
-
-                const id = produto[0];
-                const novoEstoque = produto[1];
-
-                for(let i = 0; i < select.options.length; i++){
-
-                    if(select.options[i].value == id){
-
-                        // Atualiza apenas o estoque no dataset
-                        select.options[i].dataset.estoque = novoEstoque;
-
-                        // Pega valores já existentes
-                        const descricao = select.options[i].getAttribute("data-descricao");
-                        const valor = select.options[i].getAttribute("data-valor");
-
-                        // Atualiza apenas o texto visível
-                        select.options[i].innerHTML =
-                            `${descricao} - R$ ${parseFloat(valor).toFixed(2)} (Estoque: ${novoEstoque})`;
-
-                        break;
-                    }
-                }
-
-            });
-
-        });
-}
-
-
 function adicionarProduto(){
 
     const select = document.getElementById("produto");
@@ -274,15 +236,29 @@ function atualizarEstoqueVisual() {
         .then(response => response.json())
         .then(data => {
 
+            const select = document.getElementById("produto");
+
             data.forEach(produto => {
 
-                let elemento = document.getElementById("estoque_" + produto[0]);
+                const id = produto[0];
+                const novoEstoque = produto[1];
 
-                if(elemento){
-                    elemento.innerText = produto[1];
+                for(let i = 0; i < select.options.length; i++){
 
-                    if(produto[1] <= 0){
-                        elemento.classList.add("text-danger");
+                    if(select.options[i].value == id){
+
+                        // Atualiza apenas o estoque no dataset
+                        select.options[i].dataset.estoque = novoEstoque;
+
+                        // Pega valores já existentes
+                        const descricao = select.options[i].getAttribute("data-descricao");
+                        const valor = select.options[i].getAttribute("data-valor");
+
+                        // Atualiza apenas o texto visível
+                        select.options[i].innerHTML =
+                            `${descricao} - R$ ${parseFloat(valor).toFixed(2)} (Estoque: ${novoEstoque})`;
+
+                        break;
                     }
                 }
 
