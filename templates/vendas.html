@@ -127,40 +127,29 @@ function adicionarProduto(){
         return;
     }
 
-    for(let i=0;i<quantidade;i++){
+    // 🔥 Verifica se já existe o produto na lista
+    let itemExistente = itensVenda.find(i => i.id === id);
 
-        const item = {id, descricao, valor};
-        itensVenda.push(item);
+    if(itemExistente){
 
-        const li = document.createElement("li");
-        li.className = "list-group-item d-flex justify-content-between align-items-center";
+        itemExistente.quantidade += quantidade;
+        itemExistente.total = itemExistente.quantidade * valor;
 
-        li.innerHTML = `
-            <span>${descricao} - R$ ${valor.toFixed(2)}</span>
-            <button class="btn btn-sm btn-danger">X</button>
-        `;
+    }else{
 
-        li.querySelector("button").addEventListener("click", function(){
-
-            li.remove();
-            totalVenda -= valor;
-            estoqueControle[id] -= 1;
-
-            const index = itensVenda.indexOf(item);
-            if(index > -1){
-                itensVenda.splice(index,1);
-            }
-
-            document.getElementById("valorTotal").innerText = totalVenda.toFixed(2);
+        itensVenda.push({
+            id: id,
+            descricao: descricao,
+            valor: valor,
+            quantidade: quantidade,
+            total: valor * quantidade
         });
-
-        document.getElementById("listaProdutos").appendChild(li);
-
-        totalVenda += valor;
-        estoqueControle[id] += 1;
     }
 
-    document.getElementById("valorTotal").innerText = totalVenda.toFixed(2);
+    estoqueControle[id] += quantidade;
+
+    atualizarLista();
+
     document.getElementById("quantidade").value = "";
 }
 
