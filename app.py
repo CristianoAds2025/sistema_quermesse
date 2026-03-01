@@ -491,6 +491,17 @@ def excluir_usuario(id):
     flash("Usuário excluído com sucesso!", "success")
     return redirect("/cadastro")
 
+@app.route('/estoque_atual')
+def estoque_atual():
+    conn = conectar()
+    cur = conn.cursor()
+    cur.execute("SELECT id, estoque FROM produtos")
+    dados = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return jsonify(dados)
+
 # =========================
 # PDF
 # =========================
