@@ -120,12 +120,15 @@ function atualizarEstoqueVisual() {
 
                     if(select.options[i].value == id){
 
+                        // Atualiza apenas o estoque no dataset
                         select.options[i].dataset.estoque = novoEstoque;
 
-                        const descricao = select.options[i].dataset.descricao;
-                        const valor = select.options[i].dataset.valor;
+                        // Pega valores já existentes
+                        const descricao = select.options[i].getAttribute("data-descricao");
+                        const valor = select.options[i].getAttribute("data-valor");
 
-                        select.options[i].text =
+                        // Atualiza apenas o texto visível
+                        select.options[i].innerHTML =
                             `${descricao} - R$ ${parseFloat(valor).toFixed(2)} (Estoque: ${novoEstoque})`;
 
                         break;
