@@ -100,13 +100,14 @@ let itensVenda = [];
 let totalVenda = 0;
 let estoqueControle = {};
 window.itensUltimaVenda = [];
+window.numeroVendaAtual = null;
+window.dataVendaAtual = null;
 
 function atualizarListaVisual(){
 
     const lista = document.getElementById("listaProdutos");
     lista.innerHTML = "";
 
-    // 🔥 Agrupar produtos
     let agrupado = {};
 
     itensVenda.forEach(item => {
@@ -122,7 +123,6 @@ function atualizarListaVisual(){
         agrupado[item.id].quantidade += 1;
     });
 
-    // 🔥 Montar visual agrupado
     Object.keys(agrupado).forEach(id => {
 
         const produto = agrupado[id];
@@ -140,7 +140,6 @@ function atualizarListaVisual(){
             <button class="btn btn-sm btn-danger">X</button>
         `;
 
-        // 🔥 Remover UMA unidade por clique
         li.querySelector("button").addEventListener("click", function(){
 
             const index = itensVenda.findIndex(i => i.id == id);
@@ -150,9 +149,6 @@ function atualizarListaVisual(){
                 estoqueControle[id] -= 1;
                 itensVenda.splice(index,1);
             }
-
-            document.getElementById("valorTotal").innerText =
-                totalVenda.toFixed(2);
 
             atualizarListaVisual();
         });
@@ -192,10 +188,8 @@ function adicionarProduto(){
     }
 
     for(let i=0;i<quantidade;i++){
-
         const item = {id, descricao, valor};
         itensVenda.push(item);
-
         totalVenda += valor;
         estoqueControle[id] += 1;
     }
@@ -206,6 +200,14 @@ function adicionarProduto(){
 
 
 function salvarVenda(){
+
+    if(itensVenda.length === 0){
+        alert("Adicione pelo menos um item");
+        return;
+    }
+
+    // 🔥 ABRE JANELA IMEDIATAMENTE (evita bloqueio)
+    let janelaImpressao = window.open('', '', 'width=300,height=800');
 
     fetch("/salvar_venda", {
         method: "POST",
@@ -219,6 +221,7 @@ function salvarVenda(){
 
         if(data.erro){
             alert(data.erro);
+            janelaImpressao.close();
             return;
         }
 
@@ -229,12 +232,9 @@ function salvarVenda(){
         const resumo = document.getElementById("resumoVenda");
         resumo.innerHTML = "";
 
-        // 🔥 IMPORTANTE: copia os itens antes de limpar
         window.itensUltimaVenda = [...itensVenda];
 
         let totalResumo = 0;
-
-        // 🔥 Agrupar somente para exibição
         let agrupado = {};
 
         itensVenda.forEach(item => {
@@ -259,9 +259,7 @@ function salvarVenda(){
             li.className = "list-group-item d-flex justify-content-between align-items-center";
 
             li.innerHTML = `
-                <span>
-                    ${produto.quantidade}x ${produto.descricao}
-                </span>
+                <span>${produto.quantidade}x ${produto.descricao}</span>
                 <strong>R$ ${totalItem.toFixed(2)}</strong>
             `;
 
@@ -274,14 +272,12 @@ function salvarVenda(){
 
         document.getElementById("registroVenda").style.display = "block";
 
-        // 🔥 ESSAS DUAS LINHAS SÃO FUNDAMENTAIS
         window.numeroVendaAtual = data.numero_venda;
         window.dataVendaAtual = data.data_venda;
 
-        // 🔥 IMPRIME IMEDIATAMENTE (como era antes)
-        imprimirCupom(window.itensUltimaVenda);
+        imprimirCupom(window.itensUltimaVenda, janelaImpressao);
 
-        // 🔥 SÓ AGORA LIMPA
+        // Reset
         document.getElementById("listaProdutos").innerHTML = "";
         document.getElementById("valorTotal").innerText = "0.00";
         itensVenda = [];
@@ -289,7 +285,117 @@ function salvarVenda(){
         totalVenda = 0;
     });
 }
-    
+
+
+function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
+
+    if(!listaItens || listaItens.length === 0){
+        alert("Nenhum item para imprimir");
+        return;
+    }
+
+    let total = 0;
+    listaItens.forEach(i => total += i.valor);
+
+    if(!janela){
+        janela = window.open('', '', 'width=300,height=800');
+    }
+
+    let conteudo = `
+    <html>
+    <head>
+        <style>
+            body{
+                font-family: monospace;
+                width:58mm;
+                margin:0;
+                padding:5px;
+                text-align:center;
+            }
+            hr{
+                border-top:1px dashed black;
+                margin:5px 0;
+            }
+            .total{
+                font-weight:bold;
+                margin-top:10px;
+            }
+        </style>
+    </head>
+    <body>
+
+        <h3>COMUNIDADE SÃO FRANCISCO DE ASSIS</h3>
+        <div>Quermesse</div>
+        <hr>
+
+        <div><strong>Venda Nº:</strong> ${window.numeroVendaAtual}</div>
+        <div><strong>Data:</strong> ${window.dataVendaAtual}</div>
+
+        <hr>
+    `;
+
+    listaItens.forEach(item => {
+        conteudo += `
+            <div>${item.descricao}</div>
+            <div>R$ ${item.valor.toFixed(2)}</div>
+            <hr>
+        `;
+    });
+
+    conteudo += `
+        <div class="total">
+            TOTAL: R$ ${total.toFixed(2)}
+        </div>
+        <hr>
+        <div>Obrigado pela preferência!</div>
+    </body>
+    </html>
+    `;
+
+    janela.document.write(conteudo);
+    janela.document.close();
+    janela.focus();
+    janela.print();
+}
+
+
+function cancelarVenda(){
+
+    if(!window.numeroVendaAtual){
+        alert("Nenhuma venda para cancelar");
+        return;
+    }
+
+    const confirmar = confirm("⚠ Tem certeza que deseja CANCELAR esta venda?\n\nO estoque será restaurado.");
+
+    if(!confirmar){
+        return;
+    }
+
+    fetch("/cancelar_venda", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            numero_venda: window.numeroVendaAtual
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if(data.erro){
+            alert(data.erro);
+            return;
+        }
+
+        alert("Venda cancelada com sucesso!");
+
+        document.getElementById("registroVenda").style.display = "none";
+
+        window.numeroVendaAtual = null;
+        window.itensUltimaVenda = [];
+    });
+}
+
 </script>
 
 {% endblock %}
