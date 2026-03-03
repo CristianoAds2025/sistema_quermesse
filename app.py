@@ -179,16 +179,21 @@ def salvar_venda():
 
     dados = request.get_json()
     itens = dados.get("itens", [])
+    forma_pagamento = dados.get("forma_pagamento")
+    valor_recebido = dados.get("valor_recebido")
+    troco = dados.get("troco")
 
     if not itens:
         return jsonify({"erro": "Nenhum item na venda"}), 400
+
+    if not forma_pagamento:
+        return jsonify({"erro": "Forma de pagamento obrigatória"}), 400
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     try:
-        
-        # 🔢 GERAR NÚMERO DA VENDA ANTES DE USAR
+
         c.execute("SELECT COALESCE(MAX(numero_venda),0) + 1 AS prox FROM vendas")
         resultado = c.fetchone()
         numero_venda = resultado["prox"] if resultado else 1
@@ -211,9 +216,7 @@ def salvar_venda():
 
             if c.rowcount == 0:
                 conn.rollback()
-                return jsonify({
-                    "erro": "Estoque insuficiente (venda simultânea detectada)"
-                }), 400
+                return jsonify({"erro": "Estoque insuficiente"}), 400
 
             c.execute("""
                 SELECT descricao, estoque_atual,
@@ -233,18 +236,22 @@ def salvar_venda():
                     f'{produto["descricao"]} com estoque baixo ({produto["estoque_atual"]})'
                 )
 
-        # 🧾 INSERIR ITENS DA VENDA
+        # INSERIR ITENS
         for item in itens:
             c.execute("""
                 INSERT INTO vendas
-                (numero_venda, produto_id, quantidade, valor_total, data_venda)
-                VALUES (%s, %s, %s, %s, %s)
+                (numero_venda, produto_id, quantidade, valor_total,
+                 data_venda, forma_pagamento, valor_recebido, troco)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 numero_venda,
                 item["id"],
                 1,
                 item["valor"],
-                agora_amazonas()
+                agora_amazonas(),
+                forma_pagamento,
+                valor_recebido,
+                troco
             ))
 
         conn.commit()
@@ -254,7 +261,10 @@ def salvar_venda():
             "alertas": alertas,
             "registro": venda_registro,
             "numero_venda": numero_venda,
-            "data_venda": agora_amazonas().strftime("%d/%m/%Y %H:%M:%S")
+            "data_venda": agora_amazonas().strftime("%d/%m/%Y %H:%M:%S"),
+            "forma_pagamento": forma_pagamento,
+            "valor_recebido": valor_recebido,
+            "troco": troco
         })
 
     except Exception as e:
