@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h3>Dashboard Geral</h3>
+
+<div class="row text-center mb-4">
+    <div class="col-md-4">
+        <div class="card shadow p-3">
+            <h5>Total Geral</h5>
+            <h3 class="text-success">
+                R$ {{ total_geral | round(2) }}
+            </h3>
+        </div>
+    </div>
+</div>
+
+<hr>
+
+<h5>Vendas por Forma de Pagamento</h5>
+<table class="table table-striped">
+<tr><th>Forma</th><th>Total</th></tr>
+{% for item in por_forma %}
+<tr>
+<td>{{ item.forma_pagamento }}</td>
+<td>R$ {{ item.total | round(2) }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<hr>
+
+<h5>Produtos Mais Vendidos</h5>
+<table class="table table-striped">
+<tr><th>Produto</th><th>Quantidade</th><th>Total</th></tr>
+{% for p in mais_vendidos %}
+<tr>
+<td>{{ p.descricao }}</td>
+<td>{{ p.quantidade }}</td>
+<td>R$ {{ p.total | round(2) }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<hr>
+
+<h5>Vendas por Operador</h5>
+<table class="table table-striped">
+<tr><th>Operador</th><th>Vendas</th><th>Total</th></tr>
+{% for o in por_operador %}
+<tr>
+<td>{{ o.usuario }}</td>
+<td>{{ o.vendas }}</td>
+<td>R$ {{ o.total | round(2) }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}
