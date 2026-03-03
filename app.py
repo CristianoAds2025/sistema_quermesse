@@ -777,48 +777,143 @@ def relatorios():
 # =========================
 # PDF
 # =========================
-@app.route("/relatorio_pdf")
-def relatorio_pdf():
+@app.route("/relatorio_vendas_pdf")
+def relatorio_vendas_pdf():
+
     if session.get("perfil") != "administrador":
         return redirect("/dashboard")
-        
+
     conn = conectar()
-    c = conn.cursor()
-    c.execute("SELECT descricao, estoque_atual FROM produtos")
-    produtos = c.fetchall()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    c.execute("""
+        SELECT 
+            numero_venda,
+            MIN(data_venda) as data_venda,
+            forma_pagamento,
+            usuario,
+            SUM(valor_total) as total
+        FROM vendas
+        GROUP BY numero_venda, forma_pagamento, usuario
+        ORDER BY numero_venda DESC
+    """)
+
+    vendas = c.fetchall()
     conn.close()
 
-    file_path = "relatorio.pdf"
+    file_path = "Relatorio_Vendas.pdf"
     doc = SimpleDocTemplate(file_path, pagesize=A4)
-    data = [["Produto","Estoque"]] + list(produtos)
-    table = Table(data)
-    doc.build([table])
+    elements = []
+
+    styles = getSampleStyleSheet()
+
+    titulo_style = ParagraphStyle(
+        'TituloCentralizado',
+        parent=styles['Title'],
+        alignment=1
+    )
+
+    destaque_style = ParagraphStyle(
+        'Destaque',
+        parent=styles['Heading2'],
+        textColor=colors.HexColor("#0d6efd")
+    )
+
+    elements.append(Paragraph("QUERMESSE ONLINE", titulo_style))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Relatório Detalhado de Vendas", styles["Heading2"]))
+    elements.append(Spacer(1, 10))
+
+    data_atual = agora_amazonas().strftime("%d/%m/%Y %H:%M:%S")
+    elements.append(Paragraph(f"Gerado em: {data_atual}", styles["Normal"]))
+    elements.append(Spacer(1, 20))
+
+    data_table = [["ID", "Data", "Forma", "Total (R$)", "Usuário"]]
+
+    total_geral = 0
+
+    for v in vendas:
+        total_geral += float(v["total"])
+        data_table.append([
+            v["numero_venda"],
+            v["data_venda"].strftime("%d/%m/%Y %H:%M"),
+            v["forma_pagamento"],
+            round(v["total"],2),
+            v["usuario"]
+        ])
+
+    tabela = Table(data_table, hAlign="LEFT")
+
+    tabela.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#a9abaa")),
+        ('TEXTCOLOR',(0,0),(-1,0),colors.white),
+        ('ALIGN',(1,1),(-1,-1),'CENTER'),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+        ('BOTTOMPADDING', (0,0), (-1,0), 8),
+    ]))
+
+    elements.append(tabela)
+    elements.append(Spacer(1,25))
+
+    elements.append(Paragraph(
+        f"Total Geral das Vendas: R$ {round(total_geral,2)}",
+        destaque_style
+    ))
+
+    elements.append(Spacer(1,20))
+    elements.append(Paragraph(
+        "Relatório gerado automaticamente pelo Sistema Quermesse Online.",
+        styles["Italic"]
+    ))
+
+    doc.build(elements)
 
     return send_file(file_path, as_attachment=True)
-
 
 # =========================
 # EXCEL
 # =========================
-@app.route("/relatorio_excel")
-def relatorio_excel():
+@app.route("/relatorio_vendas_excel")
+def relatorio_vendas_excel():
+
     if session.get("perfil") != "administrador":
         return redirect("/dashboard")
-    
+
     conn = conectar()
     c = conn.cursor()
-    c.execute("SELECT descricao, estoque_atual FROM produtos")
-    produtos = c.fetchall()
+
+    c.execute("""
+        SELECT 
+            numero_venda,
+            MIN(data_venda),
+            forma_pagamento,
+            usuario,
+            SUM(valor_total)
+        FROM vendas
+        GROUP BY numero_venda, forma_pagamento, usuario
+        ORDER BY numero_venda DESC
+    """)
+
+    vendas = c.fetchall()
     conn.close()
 
     wb = Workbook()
     ws = wb.active
-    ws.append(["Produto","Estoque"])
-    for p in produtos:
-        ws.append(p)
+    ws.append(["ID Venda", "Data", "Forma Pagamento", "Valor Total", "Usuário"])
 
-    file_path = "relatorio.xlsx"
+    for v in vendas:
+        ws.append([
+            v[0],
+            v[1].strftime("%d/%m/%Y %H:%M:%S"),
+            v[2],
+            float(v[4]),
+            v[3]
+        ])
+
+    file_path = "Relatorio_Vendas.xlsx"
     wb.save(file_path)
+
     return send_file(file_path, as_attachment=True)
 
 # =========================
