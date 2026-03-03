@@ -524,23 +524,39 @@ def estoque_atual():
 # =========================
 @app.route('/resetar_quermesse', methods=['POST'])
 def resetar_quermesse():
-    if session.get("perfil") != "admin":
-        flash("Acesso restrito!")
+
+    if "usuario" not in session:
+        return redirect("/")
+
+    # 👑 Verificação correta
+    if session.get("perfil") != "administrador":
+        flash("Acesso restrito!", "danger")
         return redirect("/dashboard")
 
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = conectar()
+    if not conn:
+        flash("Erro ao conectar no banco!", "danger")
+        return redirect("/dashboard")
+
     cur = conn.cursor()
 
     try:
-        # Apaga itens e vendas
+        # 🔥 Apaga TODAS as vendas
         cur.execute("TRUNCATE TABLE vendas RESTART IDENTITY CASCADE;")
 
+        # 🔄 Opcional: restaurar estoque para inicial
+        cur.execute("""
+            UPDATE produtos
+            SET estoque_atual = estoque_inicial
+        """)
+
         conn.commit()
-        flash("Sistema resetado para nova quermesse com sucesso!")
+        flash("Sistema resetado para nova quermesse com sucesso!", "success")
 
     except Exception as e:
         conn.rollback()
-        flash("Erro ao resetar sistema!")
+        print("ERRO RESET:", e)
+        flash("Erro ao resetar sistema!", "danger")
 
     finally:
         conn.close()
