@@ -565,7 +565,6 @@ def dashboard_avancado():
         JOIN produtos p ON v.produto_id = p.id
         GROUP BY p.descricao
         ORDER BY quantidade DESC
-        LIMIT 5
     """)
     mais_vendidos = c.fetchall()
 
