@@ -107,7 +107,88 @@ def cadastro():
     conn.close()
 
     return render_template("cadastro.html", usuarios=usuarios)
-   
+
+
+# =========================
+# EDITAR USUÁRIO
+# =========================    
+@app.route("/editar_usuario/<int:id>", methods=["GET","POST"])
+def editar_usuario(id):
+    if not session.get("usuario"):
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Busca usuário
+    c.execute("SELECT id, usuario, perfil FROM usuarios WHERE id = %s", (id,))
+    usuario = c.fetchone()
+
+    if not usuario:
+        conn.close()
+        flash("Usuário não encontrado.", "danger")
+        return redirect("/cadastro")
+
+    if request.method == "POST":
+        novo_usuario = request.form["usuario"]
+        novo_perfil = request.form["perfil"]
+        nova_senha = request.form["senha"]
+    
+        if nova_senha:
+            senha_hash = generate_password_hash(nova_senha)
+            c.execute(
+                "UPDATE usuarios SET usuario = %s, perfil = %s, senha = %s WHERE id = %s",
+                (novo_usuario, novo_perfil, senha_hash, id)
+            )
+        else:
+            c.execute(
+                "UPDATE usuarios SET usuario = %s, perfil = %s WHERE id = %s",
+                (novo_usuario, novo_perfil, id)
+            )
+    
+        conn.commit()
+        conn.close()
+    
+        flash("Usuário atualizado com sucesso!", "success")
+        return redirect("/cadastro")
+
+    conn.close()
+    return render_template("editar_usuario.html", usuario=usuario)
+
+# =========================
+# EXCLUIR USUÁRIO
+# =========================
+@app.route("/excluir_usuario/<int:id>", methods=["POST"])
+def excluir_usuario(id):
+    if not session.get("usuario"):
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Busca usuário a excluir
+    c.execute("SELECT usuario FROM usuarios WHERE id = %s", (id,))
+    usuario_excluir = c.fetchone()
+
+    if not usuario_excluir:
+        conn.close()
+        flash("Usuário não encontrado.", "danger")
+        return redirect("/cadastro")
+
+    # 🔒 NÃO permite excluir o próprio usuário logado
+    if usuario_excluir["usuario"] == session["usuario"]:
+        conn.close()
+        flash("Você não pode excluir o próprio usuário!", "danger")
+        return redirect("/cadastro")
+
+    # Exclui
+    c.execute("DELETE FROM usuarios WHERE id = %s", (id,))
+    conn.commit()
+    conn.close()
+
+    flash("Usuário excluído com sucesso!", "success")
+    return redirect("/cadastro")
+
 # =========================
 # DASHBOARD
 # =========================
@@ -153,6 +234,70 @@ def produtos():
     conn.close()
 
     return render_template("produtos.html", produtos=lista)
+
+# =========================
+# EDITAR PRODUTOS
+# =========================
+@app.route("/editar_produto/<int:id>", methods=["GET", "POST"])
+def editar_produto(id):
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    if request.method == "POST":
+        descricao = request.form["descricao"]
+        valor = float(request.form["valor"].replace(",", "."))
+        estoque_inicial = int(request.form["estoque_inicial"])
+
+        # 👇 AQUI ESTÁ O AJUSTE
+        estoque_atual = estoque_inicial
+
+        c.execute("""
+            UPDATE produtos
+            SET descricao = %s,
+                valor = %s,
+                estoque_inicial = %s,
+                estoque_atual = %s
+            WHERE id = %s
+        """, (descricao, valor, estoque_inicial, estoque_atual, id))
+
+        conn.commit()
+        conn.close()
+
+        flash("Produto atualizado com sucesso!", "success")
+        return redirect("/produtos")
+
+    c.execute("SELECT * FROM produtos WHERE id=%s", (id,))
+    produto = c.fetchone()
+    conn.close()
+
+    return render_template("editar_produto.html", produto=produto)
+
+# =========================
+# ZERAR ESTOQUE
+# =========================
+@app.route("/zerar_estoque/<int:id>", methods=["POST"])
+def zerar_estoque(id):
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
+
+    conn = conectar()
+    c = conn.cursor()
+
+    # Zera apenas o estoque atual
+    c.execute("""
+        UPDATE produtos
+        SET estoque_atual = 0
+        WHERE id = %s
+    """, (id,))
+
+    conn.commit()
+    conn.close()
+
+    flash("Estoque zerado com sucesso!", "warning")
+    return redirect("/produtos")
 
 # =========================
 # VENDAS (NOVO MODELO)
@@ -335,177 +480,6 @@ def cancelar_venda():
         conn.close()
 
 # =========================
-# EDITAR PRODUTOS
-# =========================
-@app.route("/editar_produto/<int:id>", methods=["GET", "POST"])
-def editar_produto(id):
-    if session.get("perfil") != "administrador":
-        return redirect("/dashboard")
-
-    conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
-    if request.method == "POST":
-        descricao = request.form["descricao"]
-        valor = float(request.form["valor"].replace(",", "."))
-        estoque_inicial = int(request.form["estoque_inicial"])
-
-        # 👇 AQUI ESTÁ O AJUSTE
-        estoque_atual = estoque_inicial
-
-        c.execute("""
-            UPDATE produtos
-            SET descricao = %s,
-                valor = %s,
-                estoque_inicial = %s,
-                estoque_atual = %s
-            WHERE id = %s
-        """, (descricao, valor, estoque_inicial, estoque_atual, id))
-
-        conn.commit()
-        conn.close()
-
-        flash("Produto atualizado com sucesso!", "success")
-        return redirect("/produtos")
-
-    c.execute("SELECT * FROM produtos WHERE id=%s", (id,))
-    produto = c.fetchone()
-    conn.close()
-
-    return render_template("editar_produto.html", produto=produto)
-
-# =========================
-# ZERAR ESTOQUE
-# =========================
-@app.route("/zerar_estoque/<int:id>", methods=["POST"])
-def zerar_estoque(id):
-    if session.get("perfil") != "administrador":
-        return redirect("/dashboard")
-
-    conn = conectar()
-    c = conn.cursor()
-
-    # Zera apenas o estoque atual
-    c.execute("""
-        UPDATE produtos
-        SET estoque_atual = 0
-        WHERE id = %s
-    """, (id,))
-
-    conn.commit()
-    conn.close()
-
-    flash("Estoque zerado com sucesso!", "warning")
-    return redirect("/produtos")
-
-# =========================
-# RELATÓRIOS
-# =========================
-@app.route("/relatorios")
-def relatorios():
-    if "usuario" not in session:
-        return redirect("/")
-
-    if session.get("perfil") != "administrador":
-        return redirect("/dashboard")
-
-    conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
-    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
-    produtos = c.fetchall()
-
-    c.execute("""
-        SELECT v.id, p.descricao, v.quantidade, v.valor_total, v.data_venda
-        FROM vendas v
-        JOIN produtos p ON v.produto_id=p.id
-        ORDER BY v.data_venda DESC
-    """)
-    vendas = c.fetchall()
-
-    conn.close()
-    return render_template("relatorios.html", produtos=produtos, vendas=vendas)
-
-# =========================
-# EDITAR USUÁRIO
-# =========================    
-@app.route("/editar_usuario/<int:id>", methods=["GET","POST"])
-def editar_usuario(id):
-    if not session.get("usuario"):
-        return redirect("/")
-
-    conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
-    # Busca usuário
-    c.execute("SELECT id, usuario, perfil FROM usuarios WHERE id = %s", (id,))
-    usuario = c.fetchone()
-
-    if not usuario:
-        conn.close()
-        flash("Usuário não encontrado.", "danger")
-        return redirect("/cadastro")
-
-    if request.method == "POST":
-        novo_usuario = request.form["usuario"]
-        novo_perfil = request.form["perfil"]
-        nova_senha = request.form["senha"]
-    
-        if nova_senha:
-            senha_hash = generate_password_hash(nova_senha)
-            c.execute(
-                "UPDATE usuarios SET usuario = %s, perfil = %s, senha = %s WHERE id = %s",
-                (novo_usuario, novo_perfil, senha_hash, id)
-            )
-        else:
-            c.execute(
-                "UPDATE usuarios SET usuario = %s, perfil = %s WHERE id = %s",
-                (novo_usuario, novo_perfil, id)
-            )
-    
-        conn.commit()
-        conn.close()
-    
-        flash("Usuário atualizado com sucesso!", "success")
-        return redirect("/cadastro")
-
-    conn.close()
-    return render_template("editar_usuario.html", usuario=usuario)
-
-# =========================
-# EXCLUIR USUÁRIO
-# =========================
-@app.route("/excluir_usuario/<int:id>", methods=["POST"])
-def excluir_usuario(id):
-    if not session.get("usuario"):
-        return redirect("/")
-
-    conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
-    # Busca usuário a excluir
-    c.execute("SELECT usuario FROM usuarios WHERE id = %s", (id,))
-    usuario_excluir = c.fetchone()
-
-    if not usuario_excluir:
-        conn.close()
-        flash("Usuário não encontrado.", "danger")
-        return redirect("/cadastro")
-
-    # 🔒 NÃO permite excluir o próprio usuário logado
-    if usuario_excluir["usuario"] == session["usuario"]:
-        conn.close()
-        flash("Você não pode excluir o próprio usuário!", "danger")
-        return redirect("/cadastro")
-
-    # Exclui
-    c.execute("DELETE FROM usuarios WHERE id = %s", (id,))
-    conn.commit()
-    conn.close()
-
-    flash("Usuário excluído com sucesso!", "success")
-    return redirect("/cadastro")
-# =========================
 # ESTOQUE ATUAL
 # =========================
 @app.route('/estoque_atual')
@@ -518,72 +492,6 @@ def estoque_atual():
     conn.close()
 
     return jsonify(dados)
-
-# =========================
-# RESETAR QUERMESSE
-# =========================
-@app.route('/resetar_quermesse', methods=['POST'])
-def resetar_quermesse():
-
-    if "usuario" not in session:
-        return redirect("/")
-
-    # 👑 Verificação correta
-    if session.get("perfil") != "administrador":
-        flash("Acesso restrito!", "danger")
-        return redirect("/dashboard")
-
-    conn = conectar()
-    if not conn:
-        flash("Erro ao conectar no banco!", "danger")
-        return redirect("/dashboard")
-
-    cur = conn.cursor()
-
-    try:
-        # 🔥 Apaga TODAS as vendas
-        cur.execute("TRUNCATE TABLE vendas RESTART IDENTITY CASCADE;")
-
-        # 🔄 Opcional: restaurar estoque para inicial
-        cur.execute("""
-            UPDATE produtos
-            SET estoque_atual = estoque_inicial
-        """)
-
-        conn.commit()
-        flash("Sistema resetado para nova quermesse com sucesso!", "success")
-
-    except Exception as e:
-        conn.rollback()
-        print("ERRO RESET:", e)
-        flash("Erro ao resetar sistema!", "danger")
-
-    finally:
-        conn.close()
-
-    return redirect("/dashboard")
-
-# =========================
-# PDF
-# =========================
-@app.route("/relatorio_pdf")
-def relatorio_pdf():
-    if session.get("perfil") != "administrador":
-        return redirect("/dashboard")
-        
-    conn = conectar()
-    c = conn.cursor()
-    c.execute("SELECT descricao, estoque_atual FROM produtos")
-    produtos = c.fetchall()
-    conn.close()
-
-    file_path = "relatorio.pdf"
-    doc = SimpleDocTemplate(file_path, pagesize=A4)
-    data = [["Produto","Estoque"]] + list(produtos)
-    table = Table(data)
-    doc.build([table])
-
-    return send_file(file_path, as_attachment=True)
 
 # =========================
 # DASHBOARD AVANÇADO
@@ -675,6 +583,57 @@ def fechamento():
                            data=data)
 
 # =========================
+# RELATÓRIOS
+# =========================
+@app.route("/relatorios")
+def relatorios():
+    if "usuario" not in session:
+        return redirect("/")
+
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
+    produtos = c.fetchall()
+
+    c.execute("""
+        SELECT v.id, p.descricao, v.quantidade, v.valor_total, v.data_venda
+        FROM vendas v
+        JOIN produtos p ON v.produto_id=p.id
+        ORDER BY v.data_venda DESC
+    """)
+    vendas = c.fetchall()
+
+    conn.close()
+    return render_template("relatorios.html", produtos=produtos, vendas=vendas)
+
+# =========================
+# PDF
+# =========================
+@app.route("/relatorio_pdf")
+def relatorio_pdf():
+    if session.get("perfil") != "administrador":
+        return redirect("/dashboard")
+        
+    conn = conectar()
+    c = conn.cursor()
+    c.execute("SELECT descricao, estoque_atual FROM produtos")
+    produtos = c.fetchall()
+    conn.close()
+
+    file_path = "relatorio.pdf"
+    doc = SimpleDocTemplate(file_path, pagesize=A4)
+    data = [["Produto","Estoque"]] + list(produtos)
+    table = Table(data)
+    doc.build([table])
+
+    return send_file(file_path, as_attachment=True)
+
+
+# =========================
 # EXCEL
 # =========================
 @app.route("/relatorio_excel")
@@ -697,6 +656,50 @@ def relatorio_excel():
     file_path = "relatorio.xlsx"
     wb.save(file_path)
     return send_file(file_path, as_attachment=True)
+
+# =========================
+# RESETAR QUERMESSE
+# =========================
+@app.route('/resetar_quermesse', methods=['POST'])
+def resetar_quermesse():
+
+    if "usuario" not in session:
+        return redirect("/")
+
+    # 👑 Verificação correta
+    if session.get("perfil") != "administrador":
+        flash("Acesso restrito!", "danger")
+        return redirect("/dashboard")
+
+    conn = conectar()
+    if not conn:
+        flash("Erro ao conectar no banco!", "danger")
+        return redirect("/dashboard")
+
+    cur = conn.cursor()
+
+    try:
+        # 🔥 Apaga TODAS as vendas
+        cur.execute("TRUNCATE TABLE vendas RESTART IDENTITY CASCADE;")
+
+        # 🔄 Opcional: restaurar estoque para inicial
+        cur.execute("""
+            UPDATE produtos
+            SET estoque_atual = estoque_inicial
+        """)
+
+        conn.commit()
+        flash("Sistema resetado para nova quermesse com sucesso!", "success")
+
+    except Exception as e:
+        conn.rollback()
+        print("ERRO RESET:", e)
+        flash("Erro ao resetar sistema!", "danger")
+
+    finally:
+        conn.close()
+
+    return redirect("/dashboard")
 
 @app.route("/health")
 def health():
