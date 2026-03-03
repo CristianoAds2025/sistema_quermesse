@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h3>Fechamento de Caixa - {{ data }}</h3>
+
+<form method="get" class="mb-3">
+    <input type="date" name="data" value="{{ data }}">
+    <button class="btn btn-primary">Buscar</button>
+</form>
+
+<table class="table table-bordered">
+<tr>
+<th>Forma</th>
+<th>Total Vendido</th>
+<th>Total Troco</th>
+</tr>
+
+{% for r in resultado %}
+<tr>
+<td>{{ r.forma_pagamento }}</td>
+<td>R$ {{ r.total | round(2) }}</td>
+<td>R$ {{ r.total_troco | round(2) if r.total_troco else 0 }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}
