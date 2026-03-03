@@ -41,6 +41,22 @@
 {% endfor %}
 </table>
 
+<canvas id="graficoForma"></canvas>
+
+<script>
+const ctx = document.getElementById('graficoForma');
+
+new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: [{% for item in por_forma %}'{{ item.forma_pagamento }}',{% endfor %}],
+        datasets: [{
+            data: [{% for item in por_forma %}{{ item.total }},{% endfor %}]
+        }]
+    }
+});
+</script>
+
 <hr>
 
 <h5>Vendas por Operador</h5>
