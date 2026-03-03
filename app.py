@@ -171,7 +171,9 @@ def vendas():
 
     return render_template("vendas.html", produtos=produtos)
 
-
+# =========================
+# SALVAR VENDA
+# =========================
 @app.route("/salvar_venda", methods=["POST"])
 def salvar_venda():
     if "usuario" not in session:
@@ -274,7 +276,9 @@ def salvar_venda():
 
     finally:
         conn.close()
-
+# =========================
+# CANCELAR VENDA
+# =========================
 @app.route("/cancelar_venda", methods=["POST"])
 def cancelar_venda():
 
@@ -501,7 +505,9 @@ def excluir_usuario(id):
 
     flash("Usuário excluído com sucesso!", "success")
     return redirect("/cadastro")
-
+# =========================
+# ESTOQUE ATUAL
+# =========================
 @app.route('/estoque_atual')
 def estoque_atual():
     conn = conectar()
@@ -512,6 +518,35 @@ def estoque_atual():
     conn.close()
 
     return jsonify(dados)
+
+# =========================
+# RESETAR QUERMESSE
+# =========================
+@app.route('/resetar_quermesse', methods=['POST'])
+def resetar_quermesse():
+    if session.get("perfil") != "admin":
+        flash("Acesso restrito!")
+        return redirect("/dashboard")
+
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
+
+    try:
+        # Apaga itens e vendas
+        cur.execute("TRUNCATE TABLE itens_venda RESTART IDENTITY CASCADE;")
+        cur.execute("TRUNCATE TABLE vendas RESTART IDENTITY CASCADE;")
+
+        conn.commit()
+        flash("Sistema resetado para nova quermesse com sucesso!")
+
+    except Exception as e:
+        conn.rollback()
+        flash("Erro ao resetar sistema!")
+
+    finally:
+        conn.close()
+
+    return redirect("/dashboard")
 
 # =========================
 # PDF
