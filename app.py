@@ -620,8 +620,7 @@ def dashboard_avancado_pdf():
         parent=styles['Heading2'],
         textColor=colors.HexColor("#0d6efd")
     )
-    )
-
+    
     # 🏷️ Título
     elements.append(Paragraph("QUERMESSE ONLINE", titulo_style))
     elements.append(Spacer(1, 10))
