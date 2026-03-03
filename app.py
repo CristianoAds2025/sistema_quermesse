@@ -585,6 +585,9 @@ def relatorio_pdf():
 
     return send_file(file_path, as_attachment=True)
 
+# =========================
+# DASHBOARD AVANÇADO
+# =========================
 @app.route("/dashboard_avancado")
 def dashboard_avancado():
     if "usuario" not in session:
@@ -638,7 +641,9 @@ def dashboard_avancado():
         por_operador=por_operador
     )
 
-
+# =========================
+# FECHAMENTO
+# =========================
 @app.route("/fechamento")
 def fechamento():
     if "usuario" not in session:
