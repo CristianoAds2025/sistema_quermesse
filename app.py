@@ -554,8 +554,9 @@ def dashboard_avancado():
 # =========================
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch
 
 @app.route("/dashboard_avancado_pdf")
 def dashboard_avancado_pdf():
@@ -566,11 +567,10 @@ def dashboard_avancado_pdf():
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    # Total geral
+    # 🔎 CONSULTAS
     c.execute("SELECT COALESCE(SUM(valor_total),0) as total FROM vendas")
     total_geral = c.fetchone()["total"]
 
-    # Por forma
     c.execute("""
         SELECT forma_pagamento,
                SUM(valor_total) as total
@@ -579,7 +579,6 @@ def dashboard_avancado_pdf():
     """)
     por_forma = c.fetchall()
 
-    # Produtos
     c.execute("""
         SELECT p.descricao,
                SUM(v.quantidade) as quantidade,
@@ -591,7 +590,6 @@ def dashboard_avancado_pdf():
     """)
     mais_vendidos = c.fetchall()
 
-    # Operador
     c.execute("""
         SELECT usuario,
                COUNT(DISTINCT numero_venda) as vendas,
@@ -603,51 +601,110 @@ def dashboard_avancado_pdf():
 
     conn.close()
 
-    # Criar PDF
-    file_path = "resumo_vendas.pdf"
+    # 📄 CRIAÇÃO DO PDF
+    file_path = "Resumo_Quermesse.pdf"
     doc = SimpleDocTemplate(file_path, pagesize=A4)
     elements = []
+
     styles = getSampleStyleSheet()
 
-    elements.append(Paragraph("<b>Resumo Geral de Vendas</b>", styles["Title"]))
+    # 🎨 Estilos personalizados
+    titulo_style = ParagraphStyle(
+        'TituloCentralizado',
+        parent=styles['Title'],
+        alignment=1  # centralizado
+    )
+
+    destaque_style = ParagraphStyle(
+        'Destaque',
+        parent=styles['Heading2'],
+        textColor=colors.green
+    )
+
+    # 🏷️ Título
+    elements.append(Paragraph("QUERMESSE ONLINE", titulo_style))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Resumo Geral de Vendas", styles["Heading2"]))
+    elements.append(Spacer(1, 10))
+
+    # 📅 Data
+    data_atual = agora_amazonas().strftime("%d/%m/%Y %H:%M:%S")
+    elements.append(Paragraph(f"Gerado em: {data_atual}", styles["Normal"]))
     elements.append(Spacer(1, 20))
 
-    elements.append(Paragraph(f"Total Geral: R$ {round(total_geral,2)}", styles["Normal"]))
-    elements.append(Spacer(1, 20))
+    # 💰 Total Geral
+    elements.append(Paragraph(
+        f"Total Geral Arrecadado: R$ {round(total_geral,2)}",
+        destaque_style
+    ))
+    elements.append(Spacer(1, 25))
 
-    # Forma pagamento
-    elements.append(Paragraph("Vendas por Forma de Pagamento", styles["Heading2"]))
-    data_forma = [["Forma", "Total"]]
+    # =========================
+    # 🟦 FUNÇÃO PARA TABELA BONITA
+    # =========================
+    def tabela_estilizada(dados):
+        tabela = Table(dados, hAlign="LEFT")
+
+        tabela.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#198754")),
+            ('TEXTCOLOR',(0,0),(-1,0),colors.white),
+            ('ALIGN',(1,1),(-1,-1),'CENTER'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
+            ('BOTTOMPADDING', (0,0), (-1,0), 8),
+        ]))
+
+        return tabela
+
+    # 🟩 Forma de pagamento
+    elements.append(Paragraph("Vendas por Forma de Pagamento", styles["Heading3"]))
+    elements.append(Spacer(1,10))
+
+    data_forma = [["Forma de Pagamento", "Total (R$)"]]
     for item in por_forma:
-        data_forma.append([item["forma_pagamento"], f'R$ {round(item["total"],2)}'])
-    table_forma = Table(data_forma)
-    elements.append(table_forma)
-    elements.append(Spacer(1, 20))
+        data_forma.append([
+            item["forma_pagamento"],
+            round(item["total"],2)
+        ])
 
-    # Produtos
-    elements.append(Paragraph("Vendas por Produto", styles["Heading2"]))
-    data_prod = [["Produto", "Qtd", "Total"]]
+    elements.append(tabela_estilizada(data_forma))
+    elements.append(Spacer(1,25))
+
+    # 🟩 Produtos
+    elements.append(Paragraph("Produtos Mais Vendidos", styles["Heading3"]))
+    elements.append(Spacer(1,10))
+
+    data_prod = [["Produto", "Quantidade", "Total (R$)"]]
     for p in mais_vendidos:
         data_prod.append([
             p["descricao"],
             p["quantidade"],
-            f'R$ {round(p["total"],2)}'
+            round(p["total"],2)
         ])
-    table_prod = Table(data_prod)
-    elements.append(table_prod)
-    elements.append(Spacer(1, 20))
 
-    # Operador
-    elements.append(Paragraph("Vendas por Operador", styles["Heading2"]))
-    data_op = [["Operador", "Vendas", "Total"]]
+    elements.append(tabela_estilizada(data_prod))
+    elements.append(Spacer(1,25))
+
+    # 🟩 Operadores
+    elements.append(Paragraph("Vendas por Operador de Caixa", styles["Heading3"]))
+    elements.append(Spacer(1,10))
+
+    data_op = [["Operador", "Nº Vendas", "Total (R$)"]]
     for o in por_operador:
         data_op.append([
             o["usuario"],
             o["vendas"],
-            f'R$ {round(o["total"],2)}'
+            round(o["total"],2)
         ])
-    table_op = Table(data_op)
-    elements.append(table_op)
+
+    elements.append(tabela_estilizada(data_op))
+    elements.append(Spacer(1,30))
+
+    # 📝 Rodapé
+    elements.append(Paragraph(
+        "Relatório gerado automaticamente pelo Sistema Quermesse Online.",
+        styles["Italic"]
+    ))
 
     doc.build(elements)
 
