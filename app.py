@@ -760,7 +760,7 @@ def relatorios():
     c.execute("""
         SELECT 
             numero_venda,
-            MIN(data_venda) as data_venda,
+            MIN(data_venda AT TIME ZONE 'America/Manaus') as data_venda,
             forma_pagamento,
             usuario,
             SUM(valor_total) as total
