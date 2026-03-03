@@ -26,17 +26,26 @@
                     Relatórios
                 </a>
 
-                <a href="/dashboard_avancado" class="btn btn-danger btn-lg py-3 text-white">
+                <a href="/dashboard_avancado" class="btn btn-light btn-lg py-3 text-white">
                     Resumo das Vendas
                 </a>
 
                 <a href="/fechamento" class="btn btn-warning btn-lg py-3 text-white">
                     Fechamento das Vendas
                 </a>
-                
+             
                 <a href="/cadastro" class="btn btn-dark btn-lg py-3">
                     Usuários
                 </a>
+
+                {% if session.get("perfil") == "administrador" %}
+                <div class="text-center mt-4">
+                    <button class="btn btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalReset">
+                        🔥 Resetar para Nova Quermesse
+                    </button>
+                </div>
 
                 {% endif %}
 
@@ -44,6 +53,34 @@
 
         </div>
     </div>
+</div>
+
+<div class="modal fade" id="modalReset" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Confirmar Reset</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ⚠ Esta ação irá apagar todas as vendas e reiniciar o sistema.
+        <br><br>
+        Deseja continuar?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+
+        <form method="POST" action="/resetar_quermesse">
+          <button type="submit" class="btn btn-danger">
+            Confirmar Reset
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
 </div>
 
 {% endblock %}
