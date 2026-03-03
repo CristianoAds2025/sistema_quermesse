@@ -26,11 +26,11 @@
                     Relatórios
                 </a>
 
-                <a href="/dashboard_avancado" class="btn btn-light btn-lg py-3 text-white">
+                <a href="/dashboard_avancado" class="btn btn-light btn-lg py-3">
                     Resumo das Vendas
                 </a>
 
-                <a href="/fechamento" class="btn btn-warning btn-lg py-3 text-white">
+                <a href="/fechamento" class="btn btn-warning btn-lg py-3">
                     Fechamento das Vendas
                 </a>
              
@@ -38,7 +38,6 @@
                     Usuários
                 </a>
 
-                {% if session.get("perfil") == "administrador" %}
                 <div class="text-center mt-4">
                     <button class="btn btn-danger"
                             data-bs-toggle="modal"
@@ -47,13 +46,15 @@
                     </button>
                 </div>
 
-                
+                {% endif %}
+
             </div>
 
         </div>
     </div>
 </div>
 
+<!-- Modal -->
 <div class="modal fade" id="modalReset" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -82,5 +83,4 @@
   </div>
 </div>
 
-{% endif %}
 {% endblock %}
