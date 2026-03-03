@@ -618,7 +618,8 @@ def dashboard_avancado_pdf():
     destaque_style = ParagraphStyle(
         'Destaque',
         parent=styles['Heading2'],
-        textColor=colors.green
+        textColor=colors.HexColor("#0d6efd")
+    )
     )
 
     # 🏷️ Título
