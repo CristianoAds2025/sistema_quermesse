@@ -757,20 +757,23 @@ def relatorios():
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
-    produtos = c.fetchall()
-
     c.execute("""
-        SELECT v.id, p.descricao, v.quantidade, v.valor_total, v.data_venda
-        FROM vendas v
-        JOIN produtos p ON v.produto_id=p.id
-        ORDER BY v.data_venda DESC
+        SELECT 
+            numero_venda,
+            MIN(data_venda) as data_venda,
+            forma_pagamento,
+            usuario,
+            SUM(valor_total) as total
+        FROM vendas
+        GROUP BY numero_venda, forma_pagamento, usuario
+        ORDER BY numero_venda DESC
     """)
+
     vendas = c.fetchall()
-
     conn.close()
-    return render_template("relatorios.html", produtos=produtos, vendas=vendas)
 
+    return render_template("relatorios.html", vendas=vendas)
+    
 # =========================
 # PDF
 # =========================
