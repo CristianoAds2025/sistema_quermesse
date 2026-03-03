@@ -789,7 +789,7 @@ def relatorio_vendas_pdf():
     c.execute("""
         SELECT 
             numero_venda,
-            MIN(data_venda) as data_venda,
+            MIN(data_venda AT TIME ZONE 'America/Manaus') as data_venda,
             forma_pagamento,
             usuario,
             SUM(valor_total) as total
@@ -886,7 +886,7 @@ def relatorio_vendas_excel():
     c.execute("""
         SELECT 
             numero_venda,
-            MIN(data_venda),
+            MIN(data_venda AT TIME ZONE 'America/Manaus'),
             forma_pagamento,
             usuario,
             SUM(valor_total)
