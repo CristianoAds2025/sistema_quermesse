@@ -646,7 +646,7 @@ def dashboard_avancado_pdf():
         tabela = Table(dados, hAlign="LEFT")
 
         tabela.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#198754")),
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#a9abaa")),
             ('TEXTCOLOR',(0,0),(-1,0),colors.white),
             ('ALIGN',(1,1),(-1,-1),'CENTER'),
             ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
@@ -671,7 +671,7 @@ def dashboard_avancado_pdf():
     elements.append(Spacer(1,25))
 
     # 🟩 Produtos
-    elements.append(Paragraph("Produtos Mais Vendidos", styles["Heading3"]))
+    elements.append(Paragraph("Vendas por Produtos", styles["Heading3"]))
     elements.append(Spacer(1,10))
 
     data_prod = [["Produto", "Quantidade", "Total (R$)"]]
