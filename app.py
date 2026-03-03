@@ -241,8 +241,8 @@ def salvar_venda():
             c.execute("""
                 INSERT INTO vendas
                 (numero_venda, produto_id, quantidade, valor_total,
-                 data_venda, forma_pagamento, valor_recebido, troco)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                 data_venda, forma_pagamento, valor_recebido, troco, usuario)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 numero_venda,
                 item["id"],
@@ -251,7 +251,8 @@ def salvar_venda():
                 agora_amazonas(),
                 forma_pagamento,
                 valor_recebido,
-                troco
+                troco,
+                session["usuario"]
             ))
 
         conn.commit()
@@ -533,6 +534,91 @@ def relatorio_pdf():
     doc.build([table])
 
     return send_file(file_path, as_attachment=True)
+
+@app.route("/dashboard_avancado")
+def dashboard_avancado():
+    if "usuario" not in session:
+        return redirect("/")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    # Total geral
+    c.execute("SELECT COALESCE(SUM(valor_total),0) as total FROM vendas")
+    total_geral = c.fetchone()["total"]
+
+    # Total por forma
+    c.execute("""
+        SELECT forma_pagamento,
+               SUM(valor_total) as total
+        FROM vendas
+        GROUP BY forma_pagamento
+    """)
+    por_forma = c.fetchall()
+
+    # Produtos mais vendidos
+    c.execute("""
+        SELECT p.descricao,
+               SUM(v.quantidade) as quantidade,
+               SUM(v.valor_total) as total
+        FROM vendas v
+        JOIN produtos p ON v.produto_id = p.id
+        GROUP BY p.descricao
+        ORDER BY quantidade DESC
+        LIMIT 5
+    """)
+    mais_vendidos = c.fetchall()
+
+    # Vendas por operador
+    c.execute("""
+        SELECT usuario,
+               COUNT(DISTINCT numero_venda) as vendas,
+               SUM(valor_total) as total
+        FROM vendas
+        GROUP BY usuario
+    """)
+    por_operador = c.fetchall()
+
+    conn.close()
+
+    return render_template(
+        "dashboard_avancado.html",
+        total_geral=total_geral,
+        por_forma=por_forma,
+        mais_vendidos=mais_vendidos,
+        por_operador=por_operador
+    )
+
+
+@app.route("/fechamento")
+def fechamento():
+    if "usuario" not in session:
+        return redirect("/")
+
+    data = request.args.get("data")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    if not data:
+        data = agora_amazonas().strftime("%Y-%m-%d")
+
+    c.execute("""
+        SELECT forma_pagamento,
+               SUM(valor_total) as total,
+               SUM(troco) as total_troco
+        FROM vendas
+        WHERE DATE(data_venda) = %s
+        GROUP BY forma_pagamento
+    """, (data,))
+
+    resultado = c.fetchall()
+
+    conn.close()
+
+    return render_template("fechamento.html",
+                           resultado=resultado,
+                           data=data)
 
 # =========================
 # EXCEL
