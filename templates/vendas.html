@@ -55,6 +55,52 @@
 
     <hr>
 
+    <h5>Forma de Pagamento</h5>
+    
+    <div class="mb-3">
+    
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="formaPagamento" value="Crédito">
+            <label class="form-check-label">Crédito</label>
+        </div>
+    
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="formaPagamento" value="Débito">
+            <label class="form-check-label">Débito</label>
+        </div>
+    
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="formaPagamento" value="Pix">
+            <label class="form-check-label">Pix</label>
+        </div>
+    
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="formaPagamento" value="Dinheiro">
+            <label class="form-check-label">Dinheiro</label>
+        </div>
+    
+    </div>
+    
+    <div id="areaDinheiro" style="display:none;" class="mt-3">
+    
+        <label class="form-label fw-bold">Valor Recebido</label>
+    
+        <input type="number"
+               step="0.01"
+               min="0"
+               id="valorRecebido"
+               class="form-control"
+               placeholder="0.00"
+               oninput="calcularTroco()">
+    
+        <div class="mt-2">
+            <strong>Troco: R$ <span id="trocoCalculado">0.00</span></strong>
+        </div>
+    
+    </div>
+    
+    <hr>
+
     <div class="d-flex gap-2">
         <button onclick="salvarVenda()"
                 class="btn btn-success">
@@ -240,6 +286,33 @@ function salvarVenda(){
         return;
     }
 
+    const formaSelecionada = document.querySelector('input[name="formaPagamento"]:checked');
+
+    if(!formaSelecionada){
+        alert("Selecione a forma de pagamento!");
+        return;
+    }
+    
+    let valorRecebido = null;
+    let troco = null;
+    
+    if(formaSelecionada.value === "Dinheiro"){
+    
+        valorRecebido = parseFloat(document.getElementById("valorRecebido").value);
+    
+        if(isNaN(valorRecebido)){
+            alert("Informe o valor recebido.");
+            return;
+        }
+    
+        if(valorRecebido < totalVenda){
+            alert("Valor recebido menor que o total da venda.");
+            return;
+        }
+    
+        troco = valorRecebido - totalVenda;
+    }
+    
     // 🔥 ABRE JANELA IMEDIATAMENTE (evita bloqueio)
     let janelaImpressao = window.open('', '', 'width=300,height=800');
 
@@ -247,7 +320,10 @@ function salvarVenda(){
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-            itens: itensVenda
+            itens: itensVenda,
+            forma_pagamento: formaSelecionada.value,
+            valor_recebido: valorRecebido,
+            troco: troco
         })
     })
     .then(res => res.json())
@@ -306,6 +382,23 @@ function salvarVenda(){
 
         document.getElementById("registroVenda").style.display = "block";
 
+        const liPagamento = document.createElement("li");
+        liPagamento.className = "list-group-item text-primary fw-bold";
+        liPagamento.innerHTML =
+            `Forma de Pagamento: ${data.forma_pagamento}`;
+        resumo.appendChild(liPagamento);
+        
+        if(data.forma_pagamento === "Dinheiro"){
+        
+            const liTroco = document.createElement("li");
+            liTroco.className = "list-group-item text-success fw-bold";
+            liTroco.innerHTML =
+                `Recebido: R$ ${parseFloat(data.valor_recebido).toFixed(2)}<br>
+                 Troco: R$ ${parseFloat(data.troco).toFixed(2)}`;
+            resumo.appendChild(liTroco);
+        }
+
+    
         window.numeroVendaAtual = data.numero_venda;
         window.dataVendaAtual = data.data_venda;
 
@@ -476,6 +569,40 @@ function cancelarVenda(){
     });
 }
 
+
+document.querySelectorAll('input[name="formaPagamento"]').forEach(radio => {
+
+    radio.addEventListener("change", function(){
+
+        const areaDinheiro = document.getElementById("areaDinheiro");
+
+        if(this.value === "Dinheiro"){
+            areaDinheiro.style.display = "block";
+        } else {
+            areaDinheiro.style.display = "none";
+            document.getElementById("valorRecebido").value = "";
+            document.getElementById("trocoCalculado").innerText = "0.00";
+        }
+
+    });
+
+});
+
+function calcularTroco(){
+
+    const valorRecebido = parseFloat(document.getElementById("valorRecebido").value);
+    const trocoSpan = document.getElementById("trocoCalculado");
+
+    if(isNaN(valorRecebido)){
+        trocoSpan.innerText = "0.00";
+        return;
+    }
+
+    const troco = valorRecebido - totalVenda;
+
+    trocoSpan.innerText = troco.toFixed(2);
+}
+    
 </script>
 
 {% endblock %}
