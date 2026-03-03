@@ -533,7 +533,6 @@ def resetar_quermesse():
 
     try:
         # Apaga itens e vendas
-        cur.execute("TRUNCATE TABLE itens_venda RESTART IDENTITY CASCADE;")
         cur.execute("TRUNCATE TABLE vendas RESTART IDENTITY CASCADE;")
 
         conn.commit()
