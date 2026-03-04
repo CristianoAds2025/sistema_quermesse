@@ -733,13 +733,20 @@ def fechamento():
         data = agora_amazonas().strftime("%Y-%m-%d")
 
     c.execute("""
-        SELECT forma_pagamento,
-               SUM(valor_total) as total,
-               SUM(troco) as total_troco
+    SELECT forma_pagamento,
+           SUM(valor_total) AS total,
+           SUM(troco_unico) AS total_troco
+    FROM (
+        SELECT numero_venda,
+               forma_pagamento,
+               SUM(valor_total) AS valor_total,
+               MAX(troco) AS troco_unico
         FROM vendas
         WHERE DATE(data_venda) = %s
-        GROUP BY forma_pagamento
-    """, (data,))
+        GROUP BY numero_venda, forma_pagamento
+    ) sub
+    GROUP BY forma_pagamento
+""", (data,))
 
     resultado = c.fetchall()
 
