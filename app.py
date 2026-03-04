@@ -719,7 +719,7 @@ def dashboard_avancado_pdf():
 # =========================
 # FECHAMENTO
 # =========================
-app.route("/fechamento")
+@app.route("/fechamento")
 def fechamento():
     if "usuario" not in session:
         return redirect("/")
