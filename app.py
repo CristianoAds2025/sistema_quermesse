@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table
 from reportlab.lib.pagesizes import A4
 from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -905,7 +906,22 @@ def relatorio_vendas_excel():
 
     wb = Workbook()
     ws = wb.active
-    ws.append(["ID Venda", "Data", "Forma Pagamento", "Valor Total", "Usuário"])
+
+    # Cabeçalho
+    headers = ["ID Venda", "Data", "Forma Pagamento", "Valor Total", "Usuário"]
+    ws.append(headers)
+
+    # ===== ESTILO DO CABEÇALHO =====
+    bold_font = Font(bold=True)
+    fill_gray = PatternFill(start_color="DDDDDD",
+                            end_color="DDDDDD",
+                            fill_type="solid")
+
+    for col in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col)
+        cell.font = bold_font
+        cell.fill = fill_gray
+    # ================================
 
     for v in vendas:
         ws.append([
