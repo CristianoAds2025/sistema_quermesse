@@ -722,10 +722,13 @@ def dashboard_avancado_pdf():
 @app.route("/fechamento")
 def fechamento():
 
-    conn = get_db_connection()
-    cur = conn.cursor()
+    if "usuario" not in session:
+        return redirect("/")
 
-    data_hoje = datetime.now().date()
+    conn = conectar()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    data_hoje = agora_amazonas().date()
 
     cur.execute("""
         SELECT forma_pagamento,
@@ -737,15 +740,15 @@ def fechamento():
                    SUM(valor_total) as total_venda,
                    MAX(COALESCE(troco,0)) as troco_venda
             FROM vendas
-            WHERE DATE(data_venda) = %s
+            WHERE DATE(data_venda AT TIME ZONE 'America/Manaus') = %s
             GROUP BY numero_venda, forma_pagamento
         ) sub
         GROUP BY forma_pagamento
+        ORDER BY forma_pagamento
     """, (data_hoje,))
 
     resultados = cur.fetchall()
 
-    cur.close()
     conn.close()
 
     return render_template("fechamento.html", resultados=resultados)
