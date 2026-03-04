@@ -750,6 +750,8 @@ def fechamento():
 
     conn.close()
 
+    print("DATA HOJE:", data_hoje)
+    print("RESULTADOS:", resultados)
     return render_template("fechamento.html", resultados=resultados)
 
 # =========================
