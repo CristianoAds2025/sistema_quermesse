@@ -732,9 +732,10 @@ def fechamento():
     if not data:
         data = agora_amazonas().strftime("%Y-%m-%d")
 
+    cur.execute("""
     SELECT forma_pagamento,
-       SUM(total_venda) as total,
-       SUM(troco_venda) as total_troco
+           SUM(total_venda) as total,
+           SUM(troco_venda) as total_troco
     FROM (
         SELECT numero_venda,
                forma_pagamento,
@@ -745,6 +746,7 @@ def fechamento():
         GROUP BY numero_venda, forma_pagamento
     ) sub
     GROUP BY forma_pagamento
+""", (data_hoje,))
 
     resultado = c.fetchall()
 
