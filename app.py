@@ -403,8 +403,8 @@ def salvar_venda():
                 item["valor"],
                 agora_amazonas(),
                 forma_pagamento,
-                valor_recebido,
-                troco,
+                valor_recebido if item == itens[0] else None,
+                troco if item == itens[0] else None,
                 session["usuario"]
             ))
 
@@ -735,7 +735,7 @@ def fechamento():
     c.execute("""
         SELECT forma_pagamento,
                SUM(valor_total) as total,
-               SUM(troco) as total_troco
+               SUM(COALESCE(troco,0)) as total_troco
         FROM vendas
         WHERE DATE(data_venda) = %s
         GROUP BY forma_pagamento
