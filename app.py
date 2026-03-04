@@ -924,15 +924,30 @@ def relatorio_vendas_excel():
     # ================================
 
     # Inserindo dados
+    total_geral = 0  # acumulador
+    
     for v in vendas:
+        valor = float(v[4])
+        total_geral += valor
+    
         ws.append([
             v[0],
             v[1].strftime("%d/%m/%Y %H:%M:%S"),
             v[2],
-            float(v[4]),
+            valor,
             v[3]
         ])
-
+    
+    # ===== LINHA DO TOTAL =====
+    linha_total = ws.max_row + 1
+    
+    ws.cell(row=linha_total, column=3).value = "Total das vendas"
+    ws.cell(row=linha_total, column=4).value = total_geral
+    
+    # Negrito na linha total
+    ws.cell(row=linha_total, column=3).font = Font(bold=True)
+    ws.cell(row=linha_total, column=4).font = Font(bold=True)
+   
     # ===== AJUSTE AUTOMÁTICO DE LARGURA =====
     for column_cells in ws.columns:
         max_length = 0
