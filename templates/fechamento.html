@@ -15,24 +15,23 @@
     <button class="btn btn-primary">Buscar</button>
 </form>
 
-<table class="table table-bordered table-striped">
- <table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Forma de Pagamento</th>
-            <th>Total</th>
-            <th>Troco</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for r in resultados %}
-        <tr>
-            <td>{{ r.forma_pagamento }}</td>
-            <td>R$ {{ r.total }}</td>
-            <td>R$ {{ r.total_troco }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
+<table class="table table-bordered">
+<tr>
+<th>Forma</th>
+<th>Total Vendido</th>
+<th>Total Troco</th>
+</tr>
+
+{% for r in resultado %}
+<tr>
+<td>{{ r.forma_pagamento }}</td>
+<td>R$ {{ r.total | round(2) }}</td>
+<td>R$ {{ r.total_troco | round(2) if r.total_troco else 0 }}</td>
+</tr>
+{% endfor %}
+
 </table>
+
+{% endblock %}
     
 {% endblock %}
