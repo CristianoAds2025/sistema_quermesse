@@ -721,38 +721,34 @@ def dashboard_avancado_pdf():
 # =========================
 @app.route("/fechamento")
 def fechamento():
-
     if "usuario" not in session:
         return redirect("/")
 
+    data = request.args.get("data")
+
     conn = conectar()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    data_hoje = agora_amazonas().date()
+    if not data:
+        data = agora_amazonas().strftime("%Y-%m-%d")
 
-    cur.execute("""
-    SELECT forma_pagamento,
-           SUM(total_venda) as total,
-           SUM(troco_venda) as total_troco
-    FROM (
-        SELECT numero_venda,
-               forma_pagamento,
-               SUM(valor_total) as total_venda,
-               MAX(COALESCE(troco,0)) as troco_venda
+    c.execute("""
+        SELECT forma_pagamento,
+               SUM(valor_total) as total,
+               SUM(troco) as total_troco
         FROM vendas
-        GROUP BY numero_venda, forma_pagamento
-    ) sub
-    GROUP BY forma_pagamento
-    ORDER BY forma_pagamento
-""")
+        WHERE DATE(data_venda) = %s
+        GROUP BY forma_pagamento
+    """, (data,))
 
-    resultados = cur.fetchall()
+    resultado = c.fetchall()
 
     conn.close()
 
-    print("DATA HOJE:", data_hoje)
-    print("RESULTADOS:", resultados)
-    return render_template("fechamento.html", resultados=resultados)
+    return render_template("fechamento.html",
+                           resultado=resultado,
+                           data=data)
+
 
 # =========================
 # RELATÓRIOS
