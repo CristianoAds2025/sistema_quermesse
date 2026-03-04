@@ -923,6 +923,7 @@ def relatorio_vendas_excel():
         cell.fill = fill_gray
     # ================================
 
+    # Inserindo dados
     for v in vendas:
         ws.append([
             v[0],
@@ -932,11 +933,26 @@ def relatorio_vendas_excel():
             v[3]
         ])
 
+    # ===== AJUSTE AUTOMÁTICO DE LARGURA =====
+    for column_cells in ws.columns:
+        max_length = 0
+        column_letter = column_cells[0].column_letter
+
+        for cell in column_cells:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except:
+                pass
+
+        adjusted_width = max_length + 2  # espaço extra
+        ws.column_dimensions[column_letter].width = adjusted_width
+    # =========================================
+
     file_path = "Relatorio_Vendas.xlsx"
     wb.save(file_path)
 
     return send_file(file_path, as_attachment=True)
-
 # =========================
 # RESETAR QUERMESSE
 # =========================
