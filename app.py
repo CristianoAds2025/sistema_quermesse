@@ -492,7 +492,7 @@ def cancelar_venda():
 def estoque_atual():
     conn = conectar()
     cur = conn.cursor()
-    cur.execute("SELECT id, estoque FROM produtos")
+    cur.execute("SELECT id, estoque_atual FROM produtos")
     dados = cur.fetchall()
     cur.close()
     conn.close()
@@ -719,39 +719,35 @@ def dashboard_avancado_pdf():
 # =========================
 # FECHAMENTO
 # =========================
-@app.route("/fechamento")
+app.route("/fechamento")
 def fechamento():
-
     if "usuario" not in session:
         return redirect("/")
 
+    data = request.args.get("data")
+
     conn = conectar()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    data_hoje = agora_amazonas().date()
+    if not data:
+        data = agora_amazonas().strftime("%Y-%m-%d")
 
-    cur.execute("""
+    c.execute("""
         SELECT forma_pagamento,
-               SUM(total_venda) as total,
-               SUM(troco_venda) as total_troco
-        FROM (
-            SELECT numero_venda,
-                   forma_pagamento,
-                   SUM(valor_total) as total_venda,
-                   MAX(COALESCE(troco,0)) as troco_venda
-            FROM vendas
-            WHERE DATE(data_venda AT TIME ZONE 'America/Manaus') = %s
-            GROUP BY numero_venda, forma_pagamento
-        ) sub
+               SUM(valor_total) as total,
+               SUM(troco) as total_troco
+        FROM vendas
+        WHERE DATE(data_venda) = %s
         GROUP BY forma_pagamento
-        ORDER BY forma_pagamento
-    """, (data_hoje,))
+    """, (data,))
 
-    resultados = cur.fetchall()
+    resultado = c.fetchall()
 
     conn.close()
 
-    return render_template("fechamento.html", resultados=resultados)
+    return render_template("fechamento.html",
+                           resultado=resultado,
+                           data=data)
 
 # =========================
 # RELATÓRIOS
