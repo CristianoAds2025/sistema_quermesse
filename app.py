@@ -396,7 +396,7 @@ def salvar_venda():
             c.execute("""
                 INSERT INTO vendas
                 (numero_venda, produto_id, quantidade, valor_total,
-                 data_venda, forma_pagamento, valor_recebido, troco, usuario)
+                 data_venda, forma_pagamento, valor_recebido, troco, usuario_id)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 numero_venda,
@@ -407,7 +407,7 @@ def salvar_venda():
                 forma_pagamento,
                 valor_recebido if item == itens[0] else None,
                 troco if item == itens[0] else None,
-                session["usuario"]
+                session["usuario_id"]
             ))
 
         conn.commit()
