@@ -63,7 +63,8 @@ def autenticar():
     conn.close()
 
     if user and check_password_hash(user["senha"], senha):
-        session["usuario"] = user["usuario"]
+        session["usuario_id"] = user["id"]
+        session["usuario"] = user["usuario"]  # pode manter se quiser
         session["perfil"] = user.get("perfil", "usuario")
         return redirect("/dashboard")
 
@@ -128,7 +129,7 @@ def editar_usuario(id):
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Busca usuário
-    c.execute("SELECT id, noem_usuario, usuario, perfil FROM usuarios WHERE id = %s", (id,))
+    c.execute("SELECT id, nome_usuario, usuario, perfil FROM usuarios WHERE id = %s", (id,))
     usuario = c.fetchone()
 
     if not usuario:
@@ -539,11 +540,13 @@ def dashboard_avancado():
 
     # Vendas por operador
     c.execute("""
-        SELECT usuario,
-               COUNT(DISTINCT numero_venda) as vendas,
-               SUM(valor_total) as total
-        FROM vendas
-        GROUP BY usuario
+        SELECT u.nome_usuario,
+               COUNT(DISTINCT v.numero_venda) AS vendas,
+               SUM(v.valor_total) AS total
+        FROM vendas v
+        JOIN usuarios u ON u.id = v.usuario_id
+        GROUP BY u.nome_usuario
+        ORDER BY total DESC
     """)
     por_operador = c.fetchall()
 
@@ -599,11 +602,13 @@ def dashboard_avancado_pdf():
     mais_vendidos = c.fetchall()
 
     c.execute("""
-        SELECT usuario,
-               COUNT(DISTINCT numero_venda) as vendas,
-               SUM(valor_total) as total
-        FROM vendas
-        GROUP BY usuario
+        SELECT u.nome_usuario,
+               COUNT(DISTINCT v.numero_venda) AS vendas,
+               SUM(v.valor_total) AS total
+        FROM vendas v
+        JOIN usuarios u ON u.id = v.usuario_id
+        GROUP BY u.nome_usuario
+        ORDER BY total DESC
     """)
     por_operador = c.fetchall()
 
@@ -700,7 +705,7 @@ def dashboard_avancado_pdf():
     data_op = [["Operador", "Nº Vendas", "Total (R$)"]]
     for o in por_operador:
         data_op.append([
-            o["usuario"],
+            o["nome_usuario"],
             o["vendas"],
             round(o["total"],2)
         ])
@@ -775,14 +780,18 @@ def relatorios():
 
     c.execute("""
         SELECT 
-            numero_venda,
-            MIN(data_venda AT TIME ZONE 'America/Manaus') as data_venda,
-            forma_pagamento,
-            usuario,
-            SUM(valor_total) as total
-        FROM vendas
-        GROUP BY numero_venda, forma_pagamento, usuario
-        ORDER BY numero_venda DESC
+            v.numero_venda,
+            MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
+            v.forma_pagamento,
+            u.nome_usuario,
+            SUM(v.valor_total) AS total
+        FROM vendas v
+        JOIN usuarios u ON u.id = v.usuario_id
+        GROUP BY 
+            v.numero_venda, 
+            v.forma_pagamento, 
+            u.nome_usuario
+        ORDER BY v.numero_venda DESC
     """)
 
     vendas = c.fetchall()
@@ -804,15 +813,19 @@ def relatorio_vendas_pdf():
 
     c.execute("""
         SELECT 
-            numero_venda,
-            MIN(data_venda AT TIME ZONE 'America/Manaus') as data_venda,
-            forma_pagamento,
-            usuario,
-            SUM(valor_total) as total
-        FROM vendas
-        GROUP BY numero_venda, forma_pagamento, usuario
-        ORDER BY numero_venda DESC
-    """)
+            v.numero_venda,
+            MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
+            v.forma_pagamento,
+            u.nome_usuario,
+            SUM(v.valor_total) AS total
+        FROM vendas v
+        JOIN usuarios u ON u.id = v.usuario_id
+        GROUP BY 
+            v.numero_venda, 
+            v.forma_pagamento, 
+            u.nome_usuario
+        ORDER BY v.numero_venda DESC
+        """)
 
     vendas = c.fetchall()
     conn.close()
@@ -855,7 +868,7 @@ def relatorio_vendas_pdf():
             v["data_venda"].strftime("%d/%m/%Y %H:%M"),
             v["forma_pagamento"],
             round(v["total"],2),
-            v["usuario"]
+            v["nome_usuario"]
         ])
 
     tabela = Table(data_table, hAlign="LEFT")
@@ -901,14 +914,18 @@ def relatorio_vendas_excel():
 
     c.execute("""
         SELECT 
-            numero_venda,
-            MIN(data_venda AT TIME ZONE 'America/Manaus'),
-            forma_pagamento,
-            usuario,
-            SUM(valor_total)
-        FROM vendas
-        GROUP BY numero_venda, forma_pagamento, usuario
-        ORDER BY numero_venda DESC
+            v.numero_venda,
+            MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
+            v.forma_pagamento,
+            u.nome_usuario,
+            SUM(v.valor_total) AS total
+        FROM vendas v
+        JOIN usuarios u ON u.id = v.usuario_id
+        GROUP BY 
+            v.numero_venda, 
+            v.forma_pagamento, 
+            u.nome_usuario
+        ORDER BY v.numero_venda DESC
     """)
 
     vendas = c.fetchall()
