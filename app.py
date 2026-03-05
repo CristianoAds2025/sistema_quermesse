@@ -883,6 +883,7 @@ def fechamento_pdf():
 # =========================
 @app.route("/relatorios")
 def relatorios():
+
     if "usuario" not in session:
         return redirect("/")
 
@@ -911,7 +912,14 @@ def relatorios():
     vendas = c.fetchall()
     conn.close()
 
-    return render_template("relatorios.html", vendas=vendas)
+    # ✅ calcular total geral
+    total_geral = sum(float(v["total"] or 0) for v in vendas)
+
+    return render_template(
+        "relatorios.html",
+        vendas=vendas,
+        total_geral=total_geral
+    )
     
 # =========================
 # PDF
