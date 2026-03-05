@@ -82,7 +82,7 @@
                 <table class="table table-bordered table-striped">
                     <thead class="table-dark">
                         <tr>
-                            <th>ID</th>
+                            <th class="d-none d-md-table-cell">ID</th>
                             <th>Nome</th>
                             <th>Usuário</th>
                             <th>Perfil</th>
@@ -92,7 +92,7 @@
                     <tbody>
                         {% for u in usuarios %}
                         <tr>
-                            <td>{{ u.id }}</td>
+                            <td class="d-none d-md-table-cell">{{ u.id }}</td>
                             <td>{{ u.nome_usuario }}</td>
                             <td>{{ u.usuario }}</td>
                             <td>{{ u.perfil }}</td>
