@@ -6,7 +6,11 @@
         <h3 class="mb-3">Editar Usuário</h3>
 
         <form method="post">
-
+            <input class="form-control mb-3"
+                   name="nome_usuario"
+                   value="{{ usuario.nome_usuario }}"
+                   required>
+            
             <input class="form-control mb-3"
                    name="usuario"
                    value="{{ usuario.usuario }}"
