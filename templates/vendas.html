@@ -124,8 +124,9 @@
 
 <hr>
 
-<div id="registroVenda" style="display:none;">
-    <h5>Venda Atual</h5>
+<div id="registroVenda" style="display:none;" class="card p-3 shadow-sm mt-4">
+
+    <h5 class="mb-3">Venda Atual</h5>
 
     <ul id="resumoVenda" class="list-group mb-3"></ul>
 
@@ -136,21 +137,21 @@
         </span>
     </div>
 
-    <div class="d-flex gap-2 mb-5">
+    <div class="d-flex gap-2 flex-wrap">
 
-    <button onclick="imprimirCupom(window.itensUltimaVenda)"
-            class="btn btn-dark">
-        Imprimir
-    </button>
+        <button onclick="imprimirCupom(window.itensUltimaVenda)"
+                class="btn btn-dark">
+            Imprimir
+        </button>
 
-    <!-- 🔴 BOTÃO CANCELAR VENDA -->
-    <button onclick="cancelarVenda()"
-            class="btn btn-danger">
-        Cancelar Venda
-    </button>
+        <button onclick="cancelarVenda()"
+                class="btn btn-danger">
+            Cancelar Venda
+        </button>
+
+    </div>
 
 </div>
-
 <script>
 
 let itensVenda = [];
