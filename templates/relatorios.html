@@ -10,47 +10,46 @@
 <hr>
 
 <table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>ID Venda</th>
-            <th>Data</th>
-            <th>Forma Pagamento</th>
-            <th>Valor Total (R$)</th>
-            <th>Usuário</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% set total_geral = 0 %}
-        {% for v in vendas %}
-            {% set total_geral = total_geral + v.total %}
-            <tr>
-                <td>{{ v.numero_venda }}</td>
-                <td>{{ v.data_venda.strftime("%d/%m/%Y %H:%M:%S") }}</td>
-                <td>{{ v.forma_pagamento }}</td>
-                <td>{{ "%.2f"|format(v.total) }}</td>
-                <td>{{ v.nome_usuario }}</td>
-            </tr>
-        {% endfor %}
-    
-        <!-- 🔵 LINHA TOTAL -->
-        <tr class="table-primary fw-bold">
-            <td colspan="3" class="text-end">Total Geral das Vendas</td>
-            <td>R$ {{ "%.2f"|format(total_geral) }}</td>
-            <td></td>
-        </tr>
-    </tbody>
+
+<thead class="table-dark">
+<tr>
+<th>ID Venda</th>
+<th>Data</th>
+<th>Forma Pagamento</th>
+<th>Valor Total (R$)</th>
+<th>Usuário</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for v in vendas %}
+<tr>
+<td>{{ v.numero_venda }}</td>
+<td>{{ v.data_venda.strftime("%d/%m/%Y %H:%M:%S") }}</td>
+<td>{{ v.forma_pagamento }}</td>
+<td>R$ {{ "%.2f"|format(v.total) }}</td>
+<td>{{ v.nome_usuario }}</td>
+</tr>
+{% endfor %}
+
+<tr class="table-primary fw-bold">
+<td colspan="3" class="text-end">Total Geral das Vendas</td>
+<td>R$ {{ "%.2f"|format(total_geral) }}</td>
+<td></td>
+</tr>
+
+</tbody>
 </table>
 
-<div class="d-flex gap-2 mb-5">
-     
 <div class="mt-4">
-    <a href="/relatorio_vendas_pdf" class="btn btn-danger me-2">
-        Exportar PDF
-    </a>
+<a href="/relatorio_vendas_pdf" class="btn btn-danger me-2">
+Exportar PDF
+</a>
 
-    <a href="/relatorio_vendas_excel" class="btn btn-success">
-        Exportar Excel
-    </a>
+<a href="/relatorio_vendas_excel" class="btn btn-success">
+Exportar Excel
+</a>
 </div>
 
 {% endblock %}
