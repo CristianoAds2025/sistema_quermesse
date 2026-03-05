@@ -42,6 +42,11 @@
 
                 <form method="post">
                     <input class="form-control mb-2" 
+                           name="nome_usuario" 
+                           placeholder="Nome" 
+                           required>
+                    
+                    <input class="form-control mb-2" 
                            name="usuario" 
                            placeholder="Usuário (CPF: somente números)" 
                            required>
@@ -78,6 +83,7 @@
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
+                            <th>Nome</th>
                             <th>Usuário</th>
                             <th>Perfil</th>
                             <th style="width:150px;">Ações</th>
@@ -87,6 +93,7 @@
                         {% for u in usuarios %}
                         <tr>
                             <td>{{ u.id }}</td>
+                            <td>{{ u.nome_usuario }}</td>
                             <td>{{ u.usuario }}</td>
                             <td>{{ u.perfil }}</td>
                             <td>
