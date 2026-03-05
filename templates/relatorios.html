@@ -20,15 +20,24 @@
         </tr>
     </thead>
     <tbody>
+        {% set total_geral = 0 %}
         {% for v in vendas %}
-        <tr>
-            <td>{{ v.numero_venda }}</td>
-            <td>{{ v.data_venda.strftime("%d/%m/%Y %H:%M:%S") }}</td>
-            <td>{{ v.forma_pagamento }}</td>
-            <td>{{ "%.2f"|format(v.total) }}</td>
-            <td>{{ v.nome_usuario }}</td>
-        </tr>
+            {% set total_geral = total_geral + v.total %}
+            <tr>
+                <td>{{ v.numero_venda }}</td>
+                <td>{{ v.data_venda.strftime("%d/%m/%Y %H:%M:%S") }}</td>
+                <td>{{ v.forma_pagamento }}</td>
+                <td>{{ "%.2f"|format(v.total) }}</td>
+                <td>{{ v.nome_usuario }}</td>
+            </tr>
         {% endfor %}
+    
+        <!-- 🔵 LINHA TOTAL -->
+        <tr class="table-primary fw-bold">
+            <td colspan="3" class="text-end">Total Geral das Vendas</td>
+            <td>R$ {{ "%.2f"|format(total_geral) }}</td>
+            <td></td>
+        </tr>
     </tbody>
 </table>
 
