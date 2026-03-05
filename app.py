@@ -87,6 +87,7 @@ def cadastro():
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
+        nome_usuario = request.form["nome_usuario"]
         usuario = request.form["usuario"]
         senha = generate_password_hash(request.form["senha"])
         perfil = request.form["perfil"]
@@ -99,8 +100,8 @@ def cadastro():
             return redirect("/cadastro")
 
         c.execute(
-            "INSERT INTO usuarios (usuario, senha, perfil) VALUES (%s, %s, %s)",
-            (usuario, senha, perfil)
+            "INSERT INTO usuarios (nome_usuario,usuario, senha, perfil) VALUES (%s, %s, %s, %s)",
+            (nome_usuario, usuario, senha, perfil)
         )
         conn.commit()
         flash("Usuário cadastrado com sucesso!", "success")
@@ -108,7 +109,7 @@ def cadastro():
         return redirect("/cadastro")
 
     # 🔹 IMPORTANTE: SEMPRE EXECUTA NO GET
-    c.execute("SELECT id, usuario, perfil FROM usuarios ORDER BY usuario ASC")
+    c.execute("SELECT id,nome_usuario, usuario, perfil FROM usuarios ORDER BY usuario ASC")
     usuarios = c.fetchall()
     conn.close()
 
@@ -127,7 +128,7 @@ def editar_usuario(id):
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Busca usuário
-    c.execute("SELECT id, usuario, perfil FROM usuarios WHERE id = %s", (id,))
+    c.execute("SELECT id, noem_usuario, usuario, perfil FROM usuarios WHERE id = %s", (id,))
     usuario = c.fetchone()
 
     if not usuario:
@@ -136,6 +137,7 @@ def editar_usuario(id):
         return redirect("/cadastro")
 
     if request.method == "POST":
+        novo_nome_usuario = request.form["nome_usuario"]
         novo_usuario = request.form["usuario"]
         novo_perfil = request.form["perfil"]
         nova_senha = request.form["senha"]
@@ -148,8 +150,8 @@ def editar_usuario(id):
             )
         else:
             c.execute(
-                "UPDATE usuarios SET usuario = %s, perfil = %s WHERE id = %s",
-                (novo_usuario, novo_perfil, id)
+                "UPDATE usuarios SET nome_usuario = %s, usuario = %s, perfil = %s WHERE id = %s",
+                (novo_nome_usuario, novo_usuario, novo_perfil, id)
             )
     
         conn.commit()
