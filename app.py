@@ -783,12 +783,12 @@ def fechamento_pdf():
     c.execute("""
     SELECT forma_pagamento,
            SUM(valor_total) AS total,
-           SUM(troco_unico) AS total_troco
+           SUM(COALESCE(troco_unico,0)) AS total_troco
     FROM (
         SELECT numero_venda,
                forma_pagamento,
                SUM(valor_total) AS valor_total,
-               MAX(troco) AS troco_unico
+               MAX(COALESCE(troco,0)) AS troco_unico
         FROM vendas
         WHERE DATE(data_venda) = %s
         GROUP BY numero_venda, forma_pagamento
@@ -828,8 +828,17 @@ def fechamento_pdf():
     total_troco = 0
 
     for r in resultado:
-        total_vendido += float(r["total"])
-        total_troco += float(r["total_troco"] or 0)
+        total = float(r["total"] or 0)
+        troco = float(r["total_troco"] or 0)
+    
+        total_vendido += total
+        total_troco += troco
+    
+        tabela.append([
+            r["forma_pagamento"],
+            f"R$ {round(total,2)}",
+            f"R$ {round(troco,2)}"
+        ])
 
         tabela.append([
             r["forma_pagamento"],
