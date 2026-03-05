@@ -882,7 +882,7 @@ def fechamento_pdf():
 
     elements.append(Spacer(1,20))
     elements.append(Paragraph(
-        "Relatório gerado automaticamente pelo Sistema Quermesse.",
+        "Relatório gerado automaticamente pelo Sistema Quermesse Online.",
         styles["Italic"]
     ))
 
