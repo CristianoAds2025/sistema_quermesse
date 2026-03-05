@@ -319,7 +319,12 @@ def vendas():
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
+    c.execute("""
+        SELECT *
+        FROM produtos
+        WHERE estoque_atual > 0
+        ORDER BY descricao ASC
+    """)
     produtos = c.fetchall()
     conn.close()
 
