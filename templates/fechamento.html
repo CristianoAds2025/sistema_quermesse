@@ -32,13 +32,7 @@
 
 <tbody>
 
-{% set total_vendas = 0 %}
-{% set total_troco = 0 %}
-
 {% for r in resultado %}
-
-{% set total_vendas = total_vendas + (r.total or 0) %}
-{% set total_troco = total_troco + (r.total_troco or 0) %}
 
 <tr>
 <td>{{ r.forma_pagamento }}</td>
@@ -50,8 +44,8 @@
 
 <tr class="table-primary fw-bold">
 <td class="text-end">TOTAL GERAL</td>
-<td>R$ {{ "%.2f"|format(total_vendas) }}</td>
-<td>R$ {{ "%.2f"|format(total_troco) }}</td>
+<td>R$ {{ "%.2f"|format(total_geral or 0) }}</td>
+<td>R$ {{ "%.2f"|format(total_troco or 0) }}</td>
 </tr>
 
 </tbody>
