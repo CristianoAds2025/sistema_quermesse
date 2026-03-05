@@ -58,7 +58,7 @@
 <tr><th>Operador</th><th>Vendas</th><th>Total</th></tr>
 {% for o in por_operador %}
 <tr>
-<td>{{ o.usuario }}</td>
+<td>{{ o.nome_usuario }}</td>
 <td>{{ o.vendas }}</td>
 <td>R$ {{ o.total | round(2) }}</td>
 </tr>
