@@ -762,7 +762,108 @@ def fechamento():
     return render_template("fechamento.html",
                            resultado=resultado,
                            data=data)
+    
+# =========================
+# FECHAMENTO PDF
+# =========================
+@app.route("/fechamento_pdf")
+def fechamento_pdf():
 
+    if "usuario" not in session:
+        return redirect("/")
+
+    data = request.args.get("data")
+
+    if not data:
+        data = agora_amazonas().strftime("%Y-%m-%d")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    c.execute("""
+    SELECT forma_pagamento,
+           SUM(valor_total) AS total,
+           SUM(troco_unico) AS total_troco
+    FROM (
+        SELECT numero_venda,
+               forma_pagamento,
+               SUM(valor_total) AS valor_total,
+               MAX(troco) AS troco_unico
+        FROM vendas
+        WHERE DATE(data_venda) = %s
+        GROUP BY numero_venda, forma_pagamento
+    ) sub
+    GROUP BY forma_pagamento
+    """, (data,))
+
+    resultado = c.fetchall()
+    conn.close()
+
+    # ======================
+    # CRIAÇÃO DO PDF
+    # ======================
+
+    file_path = "Fechamento_Caixa.pdf"
+    doc = SimpleDocTemplate(file_path, pagesize=A4)
+
+    elements = []
+    styles = getSampleStyleSheet()
+
+    titulo_style = ParagraphStyle(
+        'TituloCentralizado',
+        parent=styles['Title'],
+        alignment=1
+    )
+
+    elements.append(Paragraph("QUERMESSE ONLINE", titulo_style))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph("Fechamento de Caixa", styles["Heading2"]))
+    elements.append(Spacer(1, 10))
+    elements.append(Paragraph(f"Data: {data}", styles["Normal"]))
+    elements.append(Spacer(1, 20))
+
+    tabela = [["Forma Pagamento", "Total Vendido", "Total Troco"]]
+
+    total_vendido = 0
+    total_troco = 0
+
+    for r in resultado:
+        total_vendido += float(r["total"])
+        total_troco += float(r["total_troco"] or 0)
+
+        tabela.append([
+            r["forma_pagamento"],
+            f"R$ {round(r['total'],2)}",
+            f"R$ {round(r['total_troco'] or 0,2)}"
+        ])
+
+    tabela.append([
+        "TOTAL GERAL",
+        f"R$ {round(total_vendido,2)}",
+        f"R$ {round(total_troco,2)}"
+    ])
+
+    table = Table(tabela)
+
+    table.setStyle(TableStyle([
+        ('BACKGROUND',(0,0),(-1,0),'#a9abaa'),
+        ('TEXTCOLOR',(0,0),(-1,0),'white'),
+        ('GRID',(0,0),(-1,-1),0.5,'grey'),
+        ('FONTNAME',(0,0),(-1,-1),'Helvetica'),
+        ('BACKGROUND', (0,-1), (-1,-1), '#d9edf7')
+    ]))
+
+    elements.append(table)
+
+    elements.append(Spacer(1,20))
+    elements.append(Paragraph(
+        "Relatório gerado automaticamente pelo Sistema Quermesse.",
+        styles["Italic"]
+    ))
+
+    doc.build(elements)
+
+    return send_file(file_path, as_attachment=True)
 
 # =========================
 # RELATÓRIOS
