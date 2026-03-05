@@ -26,7 +26,7 @@
             <td>{{ v.data_venda.strftime("%d/%m/%Y %H:%M:%S") }}</td>
             <td>{{ v.forma_pagamento }}</td>
             <td>{{ "%.2f"|format(v.total) }}</td>
-            <td>{{ v.usuario }}</td>
+            <td>{{ v.nome_usuario }}</td>
         </tr>
         {% endfor %}
     </tbody>
