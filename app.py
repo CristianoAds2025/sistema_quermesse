@@ -839,13 +839,7 @@ def fechamento_pdf():
             f"R$ {round(total,2)}",
             f"R$ {round(troco,2)}"
         ])
-
-        tabela.append([
-            r["forma_pagamento"],
-            f"R$ {round(r['total'],2)}",
-            f"R$ {round(r['total_troco'] or 0,2)}"
-        ])
-
+        
     tabela.append([
         "TOTAL GERAL",
         f"R$ {round(total_vendido,2)}",
