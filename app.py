@@ -330,10 +330,14 @@ def vendas():
 # =========================
 @app.route("/salvar_venda", methods=["POST"])
 def salvar_venda():
-    if "usuario" not in session:
-        return jsonify({"erro": "Não autorizado"}), 403
+
+    usuario_id = session.get("usuario_id")
+
+    if not usuario_id:
+        return jsonify({"erro": "Sessão expirada"}), 403
 
     dados = request.get_json()
+
     itens = dados.get("itens", [])
     forma_pagamento = dados.get("forma_pagamento")
     valor_recebido = dados.get("valor_recebido")
@@ -350,9 +354,9 @@ def salvar_venda():
 
     try:
 
-        c.execute("SELECT COALESCE(MAX(numero_venda),0) + 1 AS prox FROM vendas")
-        resultado = c.fetchone()
-        numero_venda = resultado["prox"] if resultado else 1
+        # GERA NUMERO DA VENDA (SEQUENCE = seguro para múltiplos caixas)
+        c.execute("SELECT nextval('seq_numero_venda') AS numero")
+        numero_venda = c.fetchone()["numero"]
 
         contagem = {}
         for item in itens:
@@ -361,6 +365,7 @@ def salvar_venda():
         alertas = []
         venda_registro = []
 
+        # CONTROLE DE ESTOQUE
         for produto_id, quantidade in contagem.items():
 
             c.execute("""
@@ -380,6 +385,7 @@ def salvar_venda():
                 FROM produtos
                 WHERE id = %s
             """, (produto_id,))
+
             produto = c.fetchone()
 
             venda_registro.append({
@@ -392,13 +398,14 @@ def salvar_venda():
                     f'{produto["descricao"]} com estoque baixo ({produto["estoque_atual"]})'
                 )
 
-        # INSERIR ITENS
-        for item in itens:
+        # INSERIR ITENS DA VENDA
+        for i, item in enumerate(itens):
+
             c.execute("""
                 INSERT INTO vendas
                 (numero_venda, produto_id, quantidade, valor_total,
                  data_venda, forma_pagamento, valor_recebido, troco, usuario_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
                 numero_venda,
                 item["id"],
@@ -406,22 +413,22 @@ def salvar_venda():
                 item["valor"],
                 agora_amazonas(),
                 forma_pagamento,
-                valor_recebido if item == itens[0] else None,
-                troco if item == itens[0] else None,
-                session["usuario_id"]
+                valor_recebido if i == 0 else None,
+                troco if i == 0 else None,
+                usuario_id
             ))
 
         conn.commit()
 
         return jsonify({
             "sucesso": True,
-            "alertas": alertas,
-            "registro": venda_registro,
             "numero_venda": numero_venda,
             "data_venda": agora_amazonas().strftime("%d/%m/%Y %H:%M:%S"),
             "forma_pagamento": forma_pagamento,
             "valor_recebido": valor_recebido,
-            "troco": troco
+            "troco": troco,
+            "alertas": alertas,
+            "registro": venda_registro
         })
 
     except Exception as e:
