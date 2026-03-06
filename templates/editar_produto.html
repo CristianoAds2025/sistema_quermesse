@@ -1,21 +1,49 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<a href="/produtos" class="btn btn-secondary mb-3">← Voltar</a>
+<div class="container mt-4">
 
-<h3>Editar Produto</h3>
+    <a href="/produtos" class="btn btn-secondary mb-3">
+        ← Voltar
+    </a>
 
-<form method="post">
-  <input class="form-control mb-2" name="descricao" 
-         value="{{ produto.descricao }}" required>
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
 
-  <input class="form-control mb-2" name="valor" 
-         value="{{ produto.valor }}" required>
+            <div class="card shadow-sm p-4 bg-white">
 
-  <input class="form-control mb-2" name="estoque_inicial" 
-         value="{{ produto.estoque_inicial }}" required>
+                <h3 class="text-center mb-4">Editar Produto</h3>
 
-  <button class="btn btn-success">Salvar Alterações</button>
-</form>
+                <form method="post">
+
+                    <input class="form-control mb-3"
+                           name="descricao"
+                           value="{{ produto.descricao }}"
+                           required>
+
+                    <input class="form-control mb-3"
+                           name="valor"
+                           value="{{ produto.valor }}"
+                           required>
+
+                    <input class="form-control mb-3"
+                           name="estoque_inicial"
+                           value="{{ produto.estoque_inicial }}"
+                           required>
+
+                    <div class="text-center">
+                        <button class="btn btn-success px-4">
+                            Salvar Alterações
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
 
 {% endblock %}
