@@ -908,6 +908,7 @@ def relatorios():
     data_fim = request.args.get("data_fim")
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
+    numero_venda = request.args.get("numero_venda")
     
     # corrigir parâmetros vindos como "None"
     if data_inicio == "None":
