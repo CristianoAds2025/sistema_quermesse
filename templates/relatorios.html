@@ -118,10 +118,9 @@ class="btn btn-danger me-2">
 Exportar PDF
 </a>
 
-<a href="/relatorio_vendas_excel?data_inicio={{filtro_data_inicio}}&data_fim={{filtro_data_fim}}&forma={{filtro_forma}}&usuario={{filtro_usuario}}&numero_venda={{filtro_numero_venda}}"
-class="btn btn-success">
-Exportar Excel
-</a>
+<a href="/relatorio_vendas_excel?data_inicio={{request.args.get('data_inicio','')}}&data_fim={{request.args.get('data_fim','')}}&forma_pagamento={{request.args.get('forma_pagamento','')}}&usuario_id={{request.args.get('usuario_id','')}}"
+class="btn btn-successme-2">
+Exportar Excel    
 </div>
 
 {% endblock %}
