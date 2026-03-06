@@ -1050,7 +1050,7 @@ def relatorio_vendas_pdf():
             v["numero_venda"],
             v["data_venda"].strftime("%d/%m/%Y %H:%M"),
             v["forma_pagamento"],
-            v["usuario"],
+            v["nome_usuario"],
             f"R$ {v['valor_total']:.2f}"
         ])
         total += v["valor_total"]
