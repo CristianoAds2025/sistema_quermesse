@@ -906,9 +906,21 @@ def relatorios():
 
     data_inicio = request.args.get("data_inicio")
     data_fim = request.args.get("data_fim")
-    forma = request.args.get("forma")
-    usuario = request.args.get("usuario")
-    numero_venda = request.args.get("numero_venda")
+    forma_pagamento = request.args.get("forma_pagamento")
+    usuario_id = request.args.get("usuario_id")
+    
+    # corrigir parâmetros vindos como "None"
+    if data_inicio == "None":
+        data_inicio = None
+    
+    if data_fim == "None":
+        data_fim = None
+    
+    if forma_pagamento == "None":
+        forma_pagamento = None
+    
+    if usuario_id == "None":
+        usuario_id = None
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
