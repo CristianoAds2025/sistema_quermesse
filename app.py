@@ -923,6 +923,9 @@ def relatorios():
     if usuario_id == "None":
         usuario_id = None
 
+    if numero_venda == "None":
+        numero_venda = None
+    
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
@@ -991,8 +994,8 @@ def relatorios():
         formas=formas,
         filtro_data_inicio=data_inicio,
         filtro_data_fim=data_fim,
-        filtro_forma=forma,
-        filtro_usuario=usuario,
+        filtro_forma_pagamento=forma_pagamento,
+        filtro_usuario_id=usuario_id,
         filtro_numero_venda=numero_venda
     )
     
