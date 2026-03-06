@@ -943,11 +943,11 @@ def relatorios():
 
     params = []
 
-    if data_inicio:
+    if data_inicio and data_inicio != "None":
         query += " AND DATE(v.data_venda) >= %s"
         params.append(data_inicio)
 
-    if data_fim:
+    if data_fim and data_fim != "None":
         query += " AND DATE(v.data_venda) <= %s"
         params.append(data_fim)
 
@@ -959,7 +959,7 @@ def relatorios():
         query += " AND u.id = %s"
         params.append(usuario_id)
 
-    if numero_venda:
+   if numero_venda and numero_venda != "None":
         query += " AND v.numero_venda = %s"
         params.append(numero_venda)
 
