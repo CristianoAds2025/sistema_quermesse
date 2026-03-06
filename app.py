@@ -1148,7 +1148,7 @@ def relatorio_vendas_excel():
         usuario_id = None
 
     if numero_venda in ("", "None"):
-    numero_venda = None
+        numero_venda = None
 
     conn = conectar()
     c = conn.cursor()
