@@ -959,7 +959,7 @@ def relatorios():
         query += " AND u.id = %s"
         params.append(usuario_id)
 
-   if numero_venda and numero_venda != "None":
+    if numero_venda and numero_venda != "None":
         query += " AND v.numero_venda = %s"
         params.append(numero_venda)
 
