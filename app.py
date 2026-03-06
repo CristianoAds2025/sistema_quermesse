@@ -949,11 +949,11 @@ def relatorios():
 
     if forma_pagamento:
         query += " AND v.forma_pagamento = %s"
-        params.append(forma)
+        params.append(forma_pagamento)
 
-    if usuario:
+    if usuario_id:
         query += " AND u.id = %s"
-        params.append(usuario)
+        params.append(usuario_id)
 
     if numero_venda:
         query += " AND v.numero_venda = %s"
