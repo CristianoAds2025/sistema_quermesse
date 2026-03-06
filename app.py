@@ -990,10 +990,29 @@ def relatorio_vendas_pdf():
     if session.get("perfil") != "administrador":
         return redirect("/dashboard")
 
+    # filtros da URL
+    data_inicio = request.args.get("data_inicio")
+    data_fim = request.args.get("data_fim")
+    forma_pagamento = request.args.get("forma_pagamento")
+    usuario_id = request.args.get("usuario_id")
+
+    # evitar "None"
+    if data_inicio in ("", "None"):
+        data_inicio = None
+
+    if data_fim in ("", "None"):
+        data_fim = None
+
+    if forma_pagamento in ("", "None"):
+        forma_pagamento = None
+
+    if usuario_id in ("", "None"):
+        usuario_id = None
+
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    c.execute("""
+    sql = """
         SELECT 
             v.numero_venda,
             MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
@@ -1002,85 +1021,39 @@ def relatorio_vendas_pdf():
             SUM(v.valor_total) AS total
         FROM vendas v
         JOIN usuarios u ON u.id = v.usuario_id
+        WHERE 1=1
+    """
+
+    params = []
+
+    if data_inicio:
+        sql += " AND DATE(v.data_venda) >= %s"
+        params.append(data_inicio)
+
+    if data_fim:
+        sql += " AND DATE(v.data_venda) <= %s"
+        params.append(data_fim)
+
+    if forma_pagamento:
+        sql += " AND v.forma_pagamento = %s"
+        params.append(forma_pagamento)
+
+    if usuario_id:
+        sql += " AND v.usuario_id = %s"
+        params.append(usuario_id)
+
+    sql += """
         GROUP BY 
             v.numero_venda, 
             v.forma_pagamento, 
             u.nome_usuario
         ORDER BY v.numero_venda DESC
-        """)
+    """
+
+    c.execute(sql, params)
 
     vendas = c.fetchall()
     conn.close()
-
-    file_path = "Relatorio_Vendas.pdf"
-    doc = SimpleDocTemplate(file_path, pagesize=A4)
-    elements = []
-
-    styles = getSampleStyleSheet()
-
-    titulo_style = ParagraphStyle(
-        'TituloCentralizado',
-        parent=styles['Title'],
-        alignment=1
-    )
-
-    destaque_style = ParagraphStyle(
-        'Destaque',
-        parent=styles['Heading2'],
-        textColor=colors.HexColor("#0d6efd")
-    )
-
-    elements.append(Paragraph("QUERMESSE ONLINE", titulo_style))
-    elements.append(Spacer(1, 10))
-    elements.append(Paragraph("Relatório Detalhado de Vendas", styles["Heading2"]))
-    elements.append(Spacer(1, 10))
-
-    data_atual = agora_amazonas().strftime("%d/%m/%Y %H:%M:%S")
-    elements.append(Paragraph(f"Gerado em: {data_atual}", styles["Normal"]))
-    elements.append(Spacer(1, 20))
-
-    data_table = [["ID", "Data", "Forma", "Total (R$)", "Usuário"]]
-
-    total_geral = 0
-
-    for v in vendas:
-        total_geral += float(v["total"])
-        data_table.append([
-            v["numero_venda"],
-            v["data_venda"].strftime("%d/%m/%Y %H:%M"),
-            v["forma_pagamento"],
-            round(v["total"],2),
-            v["nome_usuario"]
-        ])
-
-    tabela = Table(data_table, hAlign="LEFT")
-
-    tabela.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#a9abaa")),
-        ('TEXTCOLOR',(0,0),(-1,0),colors.white),
-        ('ALIGN',(1,1),(-1,-1),'CENTER'),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-        ('BOTTOMPADDING', (0,0), (-1,0), 8),
-    ]))
-
-    elements.append(tabela)
-    elements.append(Spacer(1,25))
-
-    elements.append(Paragraph(
-        f"Total Geral das Vendas: R$ {round(total_geral,2)}",
-        destaque_style
-    ))
-
-    elements.append(Spacer(1,20))
-    elements.append(Paragraph(
-        "Relatório gerado automaticamente pelo Sistema Quermesse Online.",
-        styles["Italic"]
-    ))
-
-    doc.build(elements)
-
-    return send_file(file_path, as_attachment=True)
 
 # =========================
 # EXCEL
