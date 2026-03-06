@@ -1012,7 +1012,7 @@ def relatorio_vendas_pdf():
     data_fim = request.args.get("data_fim")
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
-    umero_venda = request.args.get("numero_venda")
+    numero_venda = request.args.get("numero_venda")
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
