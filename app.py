@@ -987,38 +987,24 @@ def relatorios():
 @app.route("/relatorio_vendas_pdf")
 def relatorio_vendas_pdf():
 
-    if session.get("perfil") != "administrador":
-        return redirect("/dashboard")
+    if "usuario" not in session:
+        return redirect("/")
 
-    # filtros da URL
     data_inicio = request.args.get("data_inicio")
     data_fim = request.args.get("data_fim")
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
 
-    # evitar "None"
-    if data_inicio in ("", "None"):
-        data_inicio = None
-
-    if data_fim in ("", "None"):
-        data_fim = None
-
-    if forma_pagamento in ("", "None"):
-        forma_pagamento = None
-
-    if usuario_id in ("", "None"):
-        usuario_id = None
-
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    sql = """
+    query = """
         SELECT 
             v.numero_venda,
-            MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
+            MIN(v.data_venda AT TIME ZONE 'America/Manaus') as data_venda,
+            SUM(v.valor_total) as valor_total,
             v.forma_pagamento,
-            u.nome_usuario,
-            SUM(v.valor_total) AS total
+            u.nome as usuario
         FROM vendas v
         JOIN usuarios u ON u.id = v.usuario_id
         WHERE 1=1
@@ -1027,34 +1013,60 @@ def relatorio_vendas_pdf():
     params = []
 
     if data_inicio:
-        sql += " AND DATE(v.data_venda) >= %s"
+        query += " AND DATE(v.data_venda) >= %s"
         params.append(data_inicio)
 
     if data_fim:
-        sql += " AND DATE(v.data_venda) <= %s"
+        query += " AND DATE(v.data_venda) <= %s"
         params.append(data_fim)
 
     if forma_pagamento:
-        sql += " AND v.forma_pagamento = %s"
+        query += " AND v.forma_pagamento = %s"
         params.append(forma_pagamento)
 
     if usuario_id:
-        sql += " AND v.usuario_id = %s"
+        query += " AND v.usuario_id = %s"
         params.append(usuario_id)
 
-    sql += """
-        GROUP BY 
-            v.numero_venda, 
-            v.forma_pagamento, 
-            u.nome_usuario
+    query += """
+        GROUP BY v.numero_venda, v.forma_pagamento, u.nome
         ORDER BY v.numero_venda DESC
     """
 
-    c.execute(sql, params)
-
+    c.execute(query, params)
     vendas = c.fetchall()
+
+    # ===== GERAR PDF =====
+    caminho = "relatorio_vendas.pdf"
+
+    elementos = []
+
+    dados = [["Venda", "Data", "Pagamento", "Usuário", "Valor"]]
+
+    total = 0
+
+    for v in vendas:
+        dados.append([
+            v["numero_venda"],
+            v["data_venda"].strftime("%d/%m/%Y %H:%M"),
+            v["forma_pagamento"],
+            v["usuario"],
+            f"R$ {v['valor_total']:.2f}"
+        ])
+        total += v["valor_total"]
+
+    dados.append(["", "", "", "TOTAL", f"R$ {total:.2f}"])
+
+    tabela = Table(dados)
+
+    elementos.append(tabela)
+
+    doc = SimpleDocTemplate(caminho, pagesize=A4)
+    doc.build(elementos)
+
     conn.close()
 
+    return send_file(caminho, as_attachment=True)
 # =========================
 # EXCEL
 # =========================
