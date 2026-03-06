@@ -1004,7 +1004,7 @@ def relatorio_vendas_pdf():
             MIN(v.data_venda AT TIME ZONE 'America/Manaus') as data_venda,
             SUM(v.valor_total) as valor_total,
             v.forma_pagamento,
-            u.nome as usuario
+            u.nome_usuario
         FROM vendas v
         JOIN usuarios u ON u.id = v.usuario_id
         WHERE 1=1
