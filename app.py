@@ -1047,9 +1047,9 @@ def relatorio_vendas_pdf():
         query += " AND v.usuario_id = %s"
         params.append(usuario_id)
 
-   if numero_venda:
-    query += " AND v.numero_venda = %s"
-    params.append(numero_venda) 
+    if numero_venda:
+        query += " AND v.numero_venda = %s"
+        params.append(numero_venda) 
 
     query += """
         GROUP BY v.numero_venda, v.forma_pagamento, u.nome_usuario
