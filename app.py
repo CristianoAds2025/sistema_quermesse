@@ -1091,10 +1091,16 @@ def relatorio_vendas_excel():
     if session.get("perfil") != "administrador":
         return redirect("/dashboard")
 
+    # filtros vindos da URL
+    data_inicio = request.args.get("data_inicio")
+    data_fim = request.args.get("data_fim")
+    forma_pagamento = request.args.get("forma_pagamento")
+    usuario_id = request.args.get("usuario_id")
+
     conn = conectar()
     c = conn.cursor()
 
-    c.execute("""
+    sql = """
         SELECT 
             v.numero_venda,
             MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
@@ -1103,12 +1109,36 @@ def relatorio_vendas_excel():
             SUM(v.valor_total) AS total
         FROM vendas v
         JOIN usuarios u ON u.id = v.usuario_id
+        WHERE 1=1
+    """
+
+    params = []
+
+    if data_inicio:
+        sql += " AND DATE(v.data_venda) >= %s"
+        params.append(data_inicio)
+
+    if data_fim:
+        sql += " AND DATE(v.data_venda) <= %s"
+        params.append(data_fim)
+
+    if forma_pagamento:
+        sql += " AND v.forma_pagamento = %s"
+        params.append(forma_pagamento)
+
+    if usuario_id:
+        sql += " AND v.usuario_id = %s"
+        params.append(usuario_id)
+
+    sql += """
         GROUP BY 
             v.numero_venda, 
             v.forma_pagamento, 
             u.nome_usuario
         ORDER BY v.numero_venda DESC
-    """)
+    """
+
+    c.execute(sql, params)
 
     vendas = c.fetchall()
     conn.close()
@@ -1130,15 +1160,14 @@ def relatorio_vendas_excel():
         cell = ws.cell(row=1, column=col)
         cell.font = bold_font
         cell.fill = fill_gray
-    # ================================
 
     # Inserindo dados
-    total_geral = 0  # acumulador
+    total_geral = 0
     
     for v in vendas:
         valor = float(v[4])
         total_geral += valor
-    
+
         ws.append([
             v[0],
             v[1].strftime("%d/%m/%Y %H:%M:%S"),
@@ -1146,17 +1175,16 @@ def relatorio_vendas_excel():
             valor,
             v[3]
         ])
-    
+
     # ===== LINHA DO TOTAL =====
     linha_total = ws.max_row + 1
-    
+
     ws.cell(row=linha_total, column=3).value = "Total das vendas"
     ws.cell(row=linha_total, column=4).value = total_geral
-    
-    # Negrito na linha total
+
     ws.cell(row=linha_total, column=3).font = Font(bold=True)
     ws.cell(row=linha_total, column=4).font = Font(bold=True)
-   
+
     # ===== AJUSTE AUTOMÁTICO DE LARGURA =====
     for column_cells in ws.columns:
         max_length = 0
@@ -1169,9 +1197,8 @@ def relatorio_vendas_excel():
             except:
                 pass
 
-        adjusted_width = max_length + 2  # espaço extra
+        adjusted_width = max_length + 2
         ws.column_dimensions[column_letter].width = adjusted_width
-    # =========================================
 
     file_path = "Relatorio_Vendas.xlsx"
     wb.save(file_path)
