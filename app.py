@@ -5,8 +5,10 @@ import psycopg2.extras
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from reportlab.platypus import SimpleDocTemplate, Table
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -1038,13 +1040,20 @@ def relatorio_vendas_pdf():
 
     # ===== GERAR PDF =====
     caminho = "relatorio_vendas.pdf"
-
+    
     elementos = []
-
+    
+    styles = getSampleStyleSheet()
+    
+    # Título
+    titulo = Paragraph("Relatório de Vendas", styles["Title"])
+    elementos.append(titulo)
+    elementos.append(Spacer(1,20))
+    
     dados = [["Venda", "Data", "Pagamento", "Usuário", "Valor"]]
-
+    
     total = 0
-
+    
     for v in vendas:
         dados.append([
             v["numero_venda"],
@@ -1054,13 +1063,34 @@ def relatorio_vendas_pdf():
             f"R$ {v['valor_total']:.2f}"
         ])
         total += v["valor_total"]
-
+    
     dados.append(["", "", "", "TOTAL", f"R$ {total:.2f}"])
-
-    tabela = Table(dados)
-
+    
+    tabela = Table(dados, colWidths=[60,120,110,120,80])
+    
+    tabela.setStyle(TableStyle([
+    
+        # Cabeçalho
+        ('BACKGROUND',(0,0),(-1,0),colors.lightgrey),
+        ('FONTNAME',(0,0),(-1,0),'Helvetica-Bold'),
+        ('ALIGN',(0,0),(-1,0),'CENTER'),
+    
+        # Alinhamento das colunas
+        ('ALIGN',(0,1),(0,-1),'CENTER'),
+        ('ALIGN',(1,1),(3,-1),'CENTER'),
+        ('ALIGN',(4,1),(4,-1),'RIGHT'),
+    
+        # Grade
+        ('GRID',(0,0),(-1,-1),1,colors.black),
+    
+        # Linha total
+        ('FONTNAME',(3,-1),(4,-1),'Helvetica-Bold'),
+        ('BACKGROUND',(3,-1),(4,-1),colors.lightgrey)
+    
+    ]))
+    
     elementos.append(tabela)
-
+    
     doc = SimpleDocTemplate(caminho, pagesize=A4)
     doc.build(elementos)
 
