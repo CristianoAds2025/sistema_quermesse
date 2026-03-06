@@ -1096,6 +1096,19 @@ def relatorio_vendas_excel():
     data_fim = request.args.get("data_fim")
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
+    
+    # Corrigir valores inválidos vindos da URL
+    if data_inicio in ("", "None"):
+        data_inicio = None
+    
+    if data_fim in ("", "None"):
+        data_fim = None
+    
+    if forma_pagamento in ("", "None"):
+        forma_pagamento = None
+    
+    if usuario_id in ("", "None"):
+        usuario_id = None
 
     conn = conectar()
     c = conn.cursor()
