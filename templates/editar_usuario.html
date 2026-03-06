@@ -2,43 +2,58 @@
 {% block content %}
 
 <div class="container mt-4">
-    <div class="card shadow p-4">
-        <h3 class="mb-3">Editar Usuário</h3>
 
-        <form method="post">
-            <input class="form-control mb-3"
-                   name="nome_usuario"
-                   value="{{ usuario.nome_usuario }}"
-                   required>
-            
-            <input class="form-control mb-3"
-                   name="usuario"
-                   value="{{ usuario.usuario }}"
-                   required>
-        
-            <select class="form-select mb-3" name="perfil" required>
-                <option value="administrador"
-                    {% if usuario.perfil == "administrador" %}selected{% endif %}>
-                    Administrador
-                </option>
-                <option value="usuario"
-                    {% if usuario.perfil == "usuario" %}selected{% endif %}>
-                    Usuário
-                </option>
-            </select>
-        
-            <input type="password"
-                   class="form-control mb-3"
-                   name="senha"
-                   placeholder="Nova senha (deixe em branco para manter a atual)">
-        
-            <div class="d-grid gap-2">
-                <button class="btn btn-success">Salvar Alterações</button>
-                <a href="/cadastro" class="btn btn-secondary">Cancelar</a>
+    <a href="/cadastro" class="btn btn-secondary mb-3">
+        ← Voltar
+    </a>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow-sm p-4 bg-white">
+
+                <h3 class="text-center mb-4">Editar Usuário</h3>
+
+                <form method="post">
+
+                    <input class="form-control mb-3"
+                           name="nome_usuario"
+                           value="{{ usuario.nome_usuario }}"
+                           required>
+                    
+                    <input class="form-control mb-3"
+                           name="usuario"
+                           value="{{ usuario.usuario }}"
+                           required>
+                
+                    <select class="form-select mb-3" name="perfil" required>
+                        <option value="administrador"
+                            {% if usuario.perfil == "administrador" %}selected{% endif %}>
+                            Administrador
+                        </option>
+                        <option value="usuario"
+                            {% if usuario.perfil == "usuario" %}selected{% endif %}>
+                            Usuário
+                        </option>
+                    </select>
+                
+                    <input type="password"
+                           class="form-control mb-3"
+                           name="senha"
+                           placeholder="Nova senha (deixe em branco para manter a atual)">
+                
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success">Salvar Alterações</button>
+                        <a href="/cadastro" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                
+                </form>
+
             </div>
-        
-        </form>
+
+        </div>
     </div>
+
 </div>
 
 {% endblock %}
