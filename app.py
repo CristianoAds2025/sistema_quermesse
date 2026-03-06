@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table
 from reportlab.lib.pagesizes import A4
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill
+from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -1178,12 +1178,25 @@ def relatorio_vendas_excel():
 
     # ===== LINHA DO TOTAL =====
     linha_total = ws.max_row + 1
-
-    ws.cell(row=linha_total, column=3).value = "Total das vendas"
+    
+    # Texto
+    ws.cell(row=linha_total, column=1).value = "Total das vendas"
+    
+    # Valor
     ws.cell(row=linha_total, column=4).value = total_geral
-
-    ws.cell(row=linha_total, column=3).font = Font(bold=True)
+    
+    # Mesclar A+B+C
+    ws.merge_cells(start_row=linha_total, start_column=1, end_row=linha_total, end_column=3)
+    
+    # Mesclar D+E
+    ws.merge_cells(start_row=linha_total, start_column=4, end_row=linha_total, end_column=5)
+    
+    # Negrito
+    ws.cell(row=linha_total, column=1).font = Font(bold=True)
     ws.cell(row=linha_total, column=4).font = Font(bold=True)
+
+    ws.cell(row=linha_total, column=1).alignment = Alignment(horizontal="right")
+    ws.cell(row=linha_total, column=4).alignment = Alignment(horizontal="center")
 
     # ===== AJUSTE AUTOMÁTICO DE LARGURA =====
     for column_cells in ws.columns:
