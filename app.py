@@ -947,7 +947,7 @@ def relatorios():
         query += " AND DATE(v.data_venda) <= %s"
         params.append(data_fim)
 
-    if forma:
+    if forma_pagamento:
         query += " AND v.forma_pagamento = %s"
         params.append(forma)
 
