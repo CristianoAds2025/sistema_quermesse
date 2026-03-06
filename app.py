@@ -1012,6 +1012,7 @@ def relatorio_vendas_pdf():
     data_fim = request.args.get("data_fim")
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
+    umero_venda = request.args.get("numero_venda")
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -1045,6 +1046,10 @@ def relatorio_vendas_pdf():
     if usuario_id:
         query += " AND v.usuario_id = %s"
         params.append(usuario_id)
+
+   if numero_venda:
+    query += " AND v.numero_venda = %s"
+    params.append(numero_venda) 
 
     query += """
         GROUP BY v.numero_venda, v.forma_pagamento, u.nome_usuario
@@ -1127,6 +1132,7 @@ def relatorio_vendas_excel():
     data_fim = request.args.get("data_fim")
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
+    numero_venda = request.args.get("numero_venda")
     
     # Corrigir valores inválidos vindos da URL
     if data_inicio in ("", "None"):
@@ -1140,6 +1146,9 @@ def relatorio_vendas_excel():
     
     if usuario_id in ("", "None"):
         usuario_id = None
+
+    if numero_venda in ("", "None"):
+    numero_venda = None
 
     conn = conectar()
     c = conn.cursor()
@@ -1173,6 +1182,10 @@ def relatorio_vendas_excel():
     if usuario_id:
         sql += " AND v.usuario_id = %s"
         params.append(usuario_id)
+
+    if numero_venda:
+        sql += " AND v.numero_venda = %s"
+        params.append(numero_venda)
 
     sql += """
         GROUP BY 
