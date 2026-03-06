@@ -1029,7 +1029,7 @@ def relatorio_vendas_pdf():
         params.append(usuario_id)
 
     query += """
-        GROUP BY v.numero_venda, v.forma_pagamento, u.nome
+        GROUP BY v.numero_venda, v.forma_pagamento, u.nome_usuario
         ORDER BY v.numero_venda DESC
     """
 
