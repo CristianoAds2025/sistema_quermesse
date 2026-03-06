@@ -148,8 +148,8 @@ def editar_usuario(id):
         if nova_senha:
             senha_hash = generate_password_hash(nova_senha)
             c.execute(
-                "UPDATE usuarios SET usuario = %s, perfil = %s, senha = %s WHERE id = %s",
-                (novo_usuario, novo_perfil, senha_hash, id)
+                "UPDATE usuarios SET nome_usuario = %s, usuario = %s, perfil = %s, senha = %s WHERE id = %s",
+                (novo_nome_usuario, novo_usuario, novo_perfil, senha_hash, id)
             )
         else:
             c.execute(
