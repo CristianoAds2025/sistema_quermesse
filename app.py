@@ -902,10 +902,16 @@ def relatorios():
     if session.get("perfil") != "administrador":
         return redirect("/dashboard")
 
+    data_inicio = request.args.get("data_inicio")
+    data_fim = request.args.get("data_fim")
+    forma = request.args.get("forma")
+    usuario = request.args.get("usuario")
+    numero_venda = request.args.get("numero_venda")
+
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    c.execute("""
+    query = """
         SELECT 
             v.numero_venda,
             MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
@@ -914,23 +920,65 @@ def relatorios():
             SUM(v.valor_total) AS total
         FROM vendas v
         JOIN usuarios u ON u.id = v.usuario_id
+        WHERE 1=1
+    """
+
+    params = []
+
+    if data_inicio:
+        query += " AND DATE(v.data_venda) >= %s"
+        params.append(data_inicio)
+
+    if data_fim:
+        query += " AND DATE(v.data_venda) <= %s"
+        params.append(data_fim)
+
+    if forma:
+        query += " AND v.forma_pagamento = %s"
+        params.append(forma)
+
+    if usuario:
+        query += " AND u.id = %s"
+        params.append(usuario)
+
+    if numero_venda:
+        query += " AND v.numero_venda = %s"
+        params.append(numero_venda)
+
+    query += """
         GROUP BY 
-            v.numero_venda, 
-            v.forma_pagamento, 
+            v.numero_venda,
+            v.forma_pagamento,
             u.nome_usuario
         ORDER BY v.numero_venda DESC
-    """)
+    """
 
+    c.execute(query, params)
     vendas = c.fetchall()
+
+    # usuários para filtro
+    c.execute("SELECT id, nome_usuario FROM usuarios ORDER BY nome_usuario")
+    usuarios = c.fetchall()
+
+    # formas de pagamento
+    c.execute("SELECT DISTINCT forma_pagamento FROM vendas ORDER BY forma_pagamento")
+    formas = c.fetchall()
+
     conn.close()
 
-    # ✅ calcular total geral
     total_geral = sum(float(v["total"] or 0) for v in vendas)
 
     return render_template(
         "relatorios.html",
         vendas=vendas,
-        total_geral=total_geral
+        total_geral=total_geral,
+        usuarios=usuarios,
+        formas=formas,
+        filtro_data_inicio=data_inicio,
+        filtro_data_fim=data_fim,
+        filtro_forma=forma,
+        filtro_usuario=usuario,
+        filtro_numero_venda=numero_venda
     )
     
 # =========================
