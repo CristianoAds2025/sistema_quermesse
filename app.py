@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, session, send_file,
 import psycopg2
 import psycopg2.extras
 import os
+from psycopg2 import pool
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -13,6 +14,20 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+try:
+    db_pool = psycopg2.pool.SimpleConnectionPool(
+        1,
+        10,
+        DATABASE_URL,
+        sslmode="require"
+    )
+    print("Pool de conexões criado com sucesso")
+except Exception as e:
+    print("ERRO AO CRIAR POOL:", e)
+    db_pool = None
+
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
 
@@ -21,14 +36,16 @@ app.secret_key = "quermesse_secret"
 # =========================
 def conectar():
     try:
-        conn = psycopg2.connect(
-            os.environ["DATABASE_URL"],
-            sslmode="require"
-        )
-        return conn
+        return db_pool.getconn()
     except Exception as e:
-        print("ERRO GRAVE AO CONECTAR NO POSTGRES:", e)
+        print("ERRO AO OBTER CONEXÃO:", e)
         return None
+
+def fechar_conexao(conn):
+    try:
+        db_pool.putconn(conn)
+    except Exception as e:
+        print("ERRO AO DEVOLVER CONEXÃO:", e)
 
 def agora_amazonas():
     return datetime.now(ZoneInfo("America/Manaus"))
