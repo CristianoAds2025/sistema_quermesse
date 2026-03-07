@@ -16,17 +16,22 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL não definida nas variáveis de ambiente")
+
 connection_pool = None
 
 try:
     connection_pool = psycopg2.pool.SimpleConnectionPool(
-        1,
-        10,
-        DATABASE_URL
+        minconn=1,
+        maxconn=10,
+        dsn=DATABASE_URL
     )
-    print("Pool de conexões criado")
+
+    print("✅ Pool de conexões criado com sucesso")
+
 except Exception as e:
-    print("Erro ao criar pool:", e)
+    print("❌ Erro ao criar pool:", e)
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
@@ -76,6 +81,8 @@ def autenticar():
     if conn is None:
         return "Erro ao conectar no banco", 500
     
+    c = None
+    
     try:
         c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
@@ -87,9 +94,10 @@ def autenticar():
         user = c.fetchone()
     
     finally:
-        c.close()
+        if c:
+            c.close()
         fechar_conexao(conn)
-
+        
     if user and check_password_hash(user["senha"], senha):
         session["usuario_id"] = user["id"]
         session["usuario"] = user["usuario"]
