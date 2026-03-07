@@ -25,11 +25,6 @@ def conectar():
             os.environ["DATABASE_URL"],
             sslmode="require"
         )
-
-        cur = conn.cursor()
-        cur.execute("SET TIME ZONE 'America/Manaus';")
-        cur.close()
-        
         return conn
     except Exception as e:
         print("ERRO GRAVE AO CONECTAR NO POSTGRES:", e)
