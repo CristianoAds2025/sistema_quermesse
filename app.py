@@ -943,80 +943,100 @@ def relatorios():
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
     numero_venda = request.args.get("numero_venda")
-    
+
     # corrigir parâmetros vindos como "None"
     if data_inicio == "None":
         data_inicio = None
-    
+
     if data_fim == "None":
         data_fim = None
-    
+
     if forma_pagamento == "None":
         forma_pagamento = None
-    
+
     if usuario_id == "None":
         usuario_id = None
 
     if numero_venda == "None":
         numero_venda = None
-    
+
     conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    query = """
-        SELECT 
-            v.numero_venda,
-            MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
-            v.forma_pagamento,
-            u.nome_usuario,
-            SUM(v.valor_total) AS total
-        FROM vendas v
-        JOIN usuarios u ON u.id = v.usuario_id
-        WHERE 1=1
-    """
+    if conn is None:
+        return "Erro ao conectar no banco", 500
 
-    params = []
+    c = None
 
-    if data_inicio and data_inicio != "None":
-        query += " AND DATE(v.data_venda) >= %s"
-        params.append(data_inicio)
+    try:
 
-    if data_fim and data_fim != "None":
-        query += " AND DATE(v.data_venda) <= %s"
-        params.append(data_fim)
+        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    if forma_pagamento:
-        query += " AND v.forma_pagamento = %s"
-        params.append(forma_pagamento)
+        query = """
+            SELECT 
+                v.numero_venda,
+                MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
+                v.forma_pagamento,
+                u.nome_usuario,
+                SUM(v.valor_total) AS total
+            FROM vendas v
+            JOIN usuarios u ON u.id = v.usuario_id
+            WHERE 1=1
+        """
 
-    if usuario_id:
-        query += " AND u.id = %s"
-        params.append(usuario_id)
+        params = []
 
-    if numero_venda and numero_venda != "None":
-        query += " AND v.numero_venda = %s"
-        params.append(numero_venda)
+        if data_inicio:
+            query += " AND DATE(v.data_venda) >= %s"
+            params.append(data_inicio)
 
-    query += """
-        GROUP BY 
-            v.numero_venda,
-            v.forma_pagamento,
-            u.nome_usuario
-        ORDER BY v.numero_venda DESC
-    """
+        if data_fim:
+            query += " AND DATE(v.data_venda) <= %s"
+            params.append(data_fim)
 
-    c.execute(query, params)
-    vendas = c.fetchall()
+        if forma_pagamento:
+            query += " AND v.forma_pagamento = %s"
+            params.append(forma_pagamento)
 
-    # usuários para filtro
-    c.execute("SELECT id, nome_usuario FROM usuarios ORDER BY nome_usuario")
-    usuarios = c.fetchall()
+        if usuario_id:
+            query += " AND u.id = %s"
+            params.append(usuario_id)
 
-    # formas de pagamento
-    c.execute("SELECT DISTINCT forma_pagamento FROM vendas ORDER BY forma_pagamento")
-    formas = c.fetchall()
+        if numero_venda:
+            query += " AND v.numero_venda = %s"
+            params.append(numero_venda)
 
-    conn.close()
+        query += """
+            GROUP BY 
+                v.numero_venda,
+                v.forma_pagamento,
+                u.nome_usuario
+            ORDER BY v.numero_venda DESC
+        """
+
+        c.execute(query, params)
+        vendas = c.fetchall()
+
+        # usuários para filtro
+        c.execute("SELECT id, nome_usuario FROM usuarios ORDER BY nome_usuario")
+        usuarios = c.fetchall()
+
+        # formas de pagamento
+        c.execute("SELECT DISTINCT forma_pagamento FROM vendas ORDER BY forma_pagamento")
+        formas = c.fetchall()
+
+    except Exception as e:
+
+        print("ERRO NO RELATÓRIO:", e)
+        vendas = []
+        usuarios = []
+        formas = []
+
+    finally:
+
+        if c:
+            c.close()
+
+        fechar_conexao(conn)
 
     total_geral = sum(float(v["total"] or 0) for v in vendas)
 
