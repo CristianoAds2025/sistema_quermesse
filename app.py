@@ -60,7 +60,6 @@ def login():
 @app.route("/autenticar", methods=["GET", "POST"])
 def autenticar():
 
-    # Se alguém tentar acessar via GET, volta para login
     if request.method == "GET":
         return redirect("/")
 
@@ -68,17 +67,25 @@ def autenticar():
     senha = request.form["senha"]
 
     conn = conectar()
-    if not conn:
+
+    if conn is None:
         return "Erro ao conectar no banco", 500
 
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    c.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
+
+    c.execute(
+        "SELECT * FROM usuarios WHERE usuario=%s",
+        (usuario,)
+    )
+
     user = c.fetchone()
-    conn.close()
+
+    c.close()
+    fechar_conexao(conn)
 
     if user and check_password_hash(user["senha"], senha):
         session["usuario_id"] = user["id"]
-        session["usuario"] = user["usuario"]  # pode manter se quiser
+        session["usuario"] = user["usuario"]
         session["perfil"] = user.get("perfil", "usuario")
         return redirect("/dashboard")
 
