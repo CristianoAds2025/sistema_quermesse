@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, session, send_file,
 import psycopg2
 import psycopg2.extras
 import os
-from psycopg2 import pool
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -14,31 +13,6 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-connection_pool = None
-
-
-def criar_pool():
-    global connection_pool
-
-    try:
-        connection_pool = psycopg2.pool.SimpleConnectionPool(
-            minconn=1,
-            maxconn=10,
-            dsn=DATABASE_URL
-        )
-
-        print("✅ Pool PostgreSQL criado")
-
-    except Exception as e:
-        print("❌ Erro ao criar pool:", e)
-        connection_pool = None
-
-
-# cria o pool ao iniciar o app
-criar_pool()
-
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
 
@@ -46,43 +20,20 @@ app.secret_key = "quermesse_secret"
 # CONEXÃO POSTGRES
 # =========================
 def conectar():
-    global connection_pool
-
     try:
+        conn = psycopg2.connect(
+            os.getenv("DATABASE_URL"),
+            sslmode="require"
+        )
 
-        # se pool morreu recria
-        if connection_pool is None:
-            print("⚠ Pool inexistente. Recriando...")
-            criar_pool()
-
-        conn = connection_pool.getconn()
-
-        # testa a conexão
-        with conn.cursor() as c:
-            c.execute("SELECT 1")
-
+        cur = conn.cursor()
+        cur.execute("SET TIME ZONE 'America/Manaus';")
+        cur.close()
+        
         return conn
-
     except Exception as e:
-
-        print("⚠ Conexão inválida. Recriando pool...", e)
-
-        try:
-            criar_pool()
-            conn = connection_pool.getconn()
-            return conn
-        except Exception as e2:
-            print("❌ Falha ao reconectar:", e2)
-            return None
-
-def fechar_conexao(conn):
-    global connection_pool
-
-    try:
-        if connection_pool and conn:
-            connection_pool.putconn(conn)
-    except Exception as e:
-        print("ERRO AO DEVOLVER CONEXÃO:", e)
+        print("ERRO GRAVE AO CONECTAR NO POSTGRES:", e)
+        return None
 
 def agora_amazonas():
     return datetime.now(ZoneInfo("America/Manaus"))
@@ -97,6 +48,7 @@ def login():
 @app.route("/autenticar", methods=["GET", "POST"])
 def autenticar():
 
+    # Se alguém tentar acessar via GET, volta para login
     if request.method == "GET":
         return redirect("/")
 
@@ -104,30 +56,17 @@ def autenticar():
     senha = request.form["senha"]
 
     conn = conectar()
-
-    if conn is None:
+    if not conn:
         return "Erro ao conectar no banco", 500
-    
-    c = None
-    
-    try:
-        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    
-        c.execute(
-            "SELECT * FROM usuarios WHERE usuario=%s",
-            (usuario,)
-        )
-    
-        user = c.fetchone()
-    
-    finally:
-        if c:
-            c.close()
-        fechar_conexao(conn)
-        
+
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    c.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
+    user = c.fetchone()
+    conn.close()
+
     if user and check_password_hash(user["senha"], senha):
         session["usuario_id"] = user["id"]
-        session["usuario"] = user["usuario"]
+        session["usuario"] = user["usuario"]  # pode manter se quiser
         session["perfil"] = user.get("perfil", "usuario")
         return redirect("/dashboard")
 
@@ -148,13 +87,7 @@ def cadastro():
         return redirect("/")
 
     conn = conectar()
-    if conn is None:
-        return "Erro ao conectar no banco", 500
-
-    c = None
-
-    try:
-        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
         nome_usuario = request.form["nome_usuario"]
@@ -181,18 +114,7 @@ def cadastro():
     # 🔹 IMPORTANTE: SEMPRE EXECUTA NO GET
     c.execute("SELECT id,nome_usuario, usuario, perfil FROM usuarios ORDER BY usuario ASC")
     usuarios = c.fetchall()
-    
-    except Exception as e:
-
-        print("ERRO CADASTRO:", e)
-        usuarios = []
-
-    finally:
-
-        if c:
-            c.close()
-
-        fechar_conexao(conn)
+    conn.close()
 
     return render_template("cadastro.html", usuarios=usuarios)
 
@@ -299,13 +221,7 @@ def produtos():
         return redirect("/dashboard")
 
     conn = conectar()
-    if conn is None:
-        return "Erro ao conectar no banco", 500
-
-    c = None
-
-    try:
-        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
         descricao = request.form["descricao"]
@@ -326,17 +242,7 @@ def produtos():
 
     c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     lista = c.fetchall()
-    except Exception as e:
-
-        print("ERRO PRODUTOS:", e)
-        usuarios = []
-
-    finally:
-
-        if c:
-            c.close()
-
-        fechar_conexao(conn)
+    conn.close()
 
     return render_template("produtos.html", produtos=lista)
 
@@ -414,13 +320,7 @@ def vendas():
         return redirect("/")
 
     conn = conectar()
-    if conn is None:
-        return "Erro ao conectar no banco", 500
-
-    c = None
-
-    try:
-        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     c.execute("""
         SELECT *
         FROM produtos
@@ -428,17 +328,7 @@ def vendas():
         ORDER BY descricao ASC
     """)
     produtos = c.fetchall()
-    except Exception as e:
-
-        print("ERRO VENDAS:", e)
-        usuarios = []
-
-    finally:
-
-        if c:
-            c.close()
-
-        fechar_conexao(conn)
+    conn.close()
 
     return render_template("vendas.html", produtos=produtos)
 
@@ -618,26 +508,11 @@ def cancelar_venda():
 @app.route('/estoque_atual')
 def estoque_atual():
     conn = conectar()
-    if conn is None:
-        return jsonify([])
-
-    cur = None
-
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT id, estoque_atual FROM produtos")
-        dados = cur.fetchall()
-    except Exception as e:
-
-        print("ERRO ESTOQUE:", e)
-        dados = []
-
-    finally:
-
-        if cur:
-            cur.close()
-
-        fechar_conexao(conn)
+    cur = conn.cursor()
+    cur.execute("SELECT id, estoque_atual FROM produtos")
+    dados = cur.fetchall()
+    cur.close()
+    conn.close()
 
     return jsonify(dados)
 
@@ -1034,100 +909,80 @@ def relatorios():
     forma_pagamento = request.args.get("forma_pagamento")
     usuario_id = request.args.get("usuario_id")
     numero_venda = request.args.get("numero_venda")
-
+    
     # corrigir parâmetros vindos como "None"
     if data_inicio == "None":
         data_inicio = None
-
+    
     if data_fim == "None":
         data_fim = None
-
+    
     if forma_pagamento == "None":
         forma_pagamento = None
-
+    
     if usuario_id == "None":
         usuario_id = None
 
     if numero_venda == "None":
         numero_venda = None
-
+    
     conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
-    if conn is None:
-        return "Erro ao conectar no banco", 500
+    query = """
+        SELECT 
+            v.numero_venda,
+            MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
+            v.forma_pagamento,
+            u.nome_usuario,
+            SUM(v.valor_total) AS total
+        FROM vendas v
+        JOIN usuarios u ON u.id = v.usuario_id
+        WHERE 1=1
+    """
 
-    c = None
+    params = []
 
-    try:
+    if data_inicio and data_inicio != "None":
+        query += " AND DATE(v.data_venda) >= %s"
+        params.append(data_inicio)
 
-        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if data_fim and data_fim != "None":
+        query += " AND DATE(v.data_venda) <= %s"
+        params.append(data_fim)
 
-        query = """
-            SELECT 
-                v.numero_venda,
-                MIN(v.data_venda AT TIME ZONE 'America/Manaus') AS data_venda,
-                v.forma_pagamento,
-                u.nome_usuario,
-                SUM(v.valor_total) AS total
-            FROM vendas v
-            JOIN usuarios u ON u.id = v.usuario_id
-            WHERE 1=1
-        """
+    if forma_pagamento:
+        query += " AND v.forma_pagamento = %s"
+        params.append(forma_pagamento)
 
-        params = []
+    if usuario_id:
+        query += " AND u.id = %s"
+        params.append(usuario_id)
 
-        if data_inicio:
-            query += " AND DATE(v.data_venda) >= %s"
-            params.append(data_inicio)
+    if numero_venda and numero_venda != "None":
+        query += " AND v.numero_venda = %s"
+        params.append(numero_venda)
 
-        if data_fim:
-            query += " AND DATE(v.data_venda) <= %s"
-            params.append(data_fim)
+    query += """
+        GROUP BY 
+            v.numero_venda,
+            v.forma_pagamento,
+            u.nome_usuario
+        ORDER BY v.numero_venda DESC
+    """
 
-        if forma_pagamento:
-            query += " AND v.forma_pagamento = %s"
-            params.append(forma_pagamento)
+    c.execute(query, params)
+    vendas = c.fetchall()
 
-        if usuario_id:
-            query += " AND u.id = %s"
-            params.append(usuario_id)
+    # usuários para filtro
+    c.execute("SELECT id, nome_usuario FROM usuarios ORDER BY nome_usuario")
+    usuarios = c.fetchall()
 
-        if numero_venda:
-            query += " AND v.numero_venda = %s"
-            params.append(numero_venda)
+    # formas de pagamento
+    c.execute("SELECT DISTINCT forma_pagamento FROM vendas ORDER BY forma_pagamento")
+    formas = c.fetchall()
 
-        query += """
-            GROUP BY 
-                v.numero_venda,
-                v.forma_pagamento,
-                u.nome_usuario
-            ORDER BY v.numero_venda DESC
-        """
-
-        c.execute(query, params)
-        vendas = c.fetchall()
-
-        # usuários para filtro
-        c.execute("SELECT id, nome_usuario FROM usuarios ORDER BY nome_usuario")
-        usuarios = c.fetchall()
-
-        # formas de pagamento
-        c.execute("SELECT DISTINCT forma_pagamento FROM vendas ORDER BY forma_pagamento")
-        formas = c.fetchall()
-
-    except Exception as e:
-
-        print("ERRO NO RELATÓRIO:", e)
-        vendas = []
-        usuarios = []
-        formas = []
-
-    finally:
-
-        if c:
-            c.close()
-
-        fechar_conexao(conn)
+    conn.close()
 
     total_geral = sum(float(v["total"] or 0) for v in vendas)
 
@@ -1466,4 +1321,3 @@ def resetar_quermesse():
 @app.route("/health")
 def health():
     return "OK", 200
-
