@@ -148,7 +148,13 @@ def cadastro():
         return redirect("/")
 
     conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if conn is None:
+        return "Erro ao conectar no banco", 500
+
+    c = None
+
+    try:
+        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
         nome_usuario = request.form["nome_usuario"]
@@ -175,7 +181,18 @@ def cadastro():
     # 🔹 IMPORTANTE: SEMPRE EXECUTA NO GET
     c.execute("SELECT id,nome_usuario, usuario, perfil FROM usuarios ORDER BY usuario ASC")
     usuarios = c.fetchall()
-    conn.close()
+    
+    except Exception as e:
+
+        print("ERRO CADASTRO:", e)
+        usuarios = []
+
+    finally:
+
+        if c:
+            c.close()
+
+        fechar_conexao(conn)
 
     return render_template("cadastro.html", usuarios=usuarios)
 
@@ -282,7 +299,13 @@ def produtos():
         return redirect("/dashboard")
 
     conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if conn is None:
+        return "Erro ao conectar no banco", 500
+
+    c = None
+
+    try:
+        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     if request.method == "POST":
         descricao = request.form["descricao"]
@@ -303,7 +326,17 @@ def produtos():
 
     c.execute("SELECT * FROM produtos ORDER BY descricao ASC")
     lista = c.fetchall()
-    conn.close()
+    except Exception as e:
+
+        print("ERRO PRODUTOS:", e)
+        usuarios = []
+
+    finally:
+
+        if c:
+            c.close()
+
+        fechar_conexao(conn)
 
     return render_template("produtos.html", produtos=lista)
 
@@ -381,7 +414,13 @@ def vendas():
         return redirect("/")
 
     conn = conectar()
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    if conn is None:
+        return "Erro ao conectar no banco", 500
+
+    c = None
+
+    try:
+        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     c.execute("""
         SELECT *
         FROM produtos
@@ -389,7 +428,17 @@ def vendas():
         ORDER BY descricao ASC
     """)
     produtos = c.fetchall()
-    conn.close()
+    except Exception as e:
+
+        print("ERRO VENDAS:", e)
+        usuarios = []
+
+    finally:
+
+        if c:
+            c.close()
+
+        fechar_conexao(conn)
 
     return render_template("vendas.html", produtos=produtos)
 
@@ -569,11 +618,26 @@ def cancelar_venda():
 @app.route('/estoque_atual')
 def estoque_atual():
     conn = conectar()
-    cur = conn.cursor()
-    cur.execute("SELECT id, estoque_atual FROM produtos")
-    dados = cur.fetchall()
-    cur.close()
-    conn.close()
+    if conn is None:
+        return jsonify([])
+
+    cur = None
+
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT id, estoque_atual FROM produtos")
+        dados = cur.fetchall()
+    except Exception as e:
+
+        print("ERRO ESTOQUE:", e)
+        dados = []
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        fechar_conexao(conn)
 
     return jsonify(dados)
 
