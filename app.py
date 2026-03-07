@@ -16,22 +16,28 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
-    raise Exception("DATABASE_URL não definida nas variáveis de ambiente")
-
 connection_pool = None
 
-try:
-    connection_pool = psycopg2.pool.SimpleConnectionPool(
-        minconn=1,
-        maxconn=10,
-        dsn=DATABASE_URL
-    )
 
-    print("✅ Pool de conexões criado com sucesso")
+def criar_pool():
+    global connection_pool
 
-except Exception as e:
-    print("❌ Erro ao criar pool:", e)
+    try:
+        connection_pool = psycopg2.pool.SimpleConnectionPool(
+            minconn=1,
+            maxconn=10,
+            dsn=DATABASE_URL
+        )
+
+        print("✅ Pool PostgreSQL criado")
+
+    except Exception as e:
+        print("❌ Erro ao criar pool:", e)
+        connection_pool = None
+
+
+# cria o pool ao iniciar o app
+criar_pool()
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
@@ -43,17 +49,38 @@ def conectar():
     global connection_pool
 
     try:
+
+        # se pool morreu recria
+        if connection_pool is None:
+            print("⚠ Pool inexistente. Recriando...")
+            criar_pool()
+
         conn = connection_pool.getconn()
+
+        # testa a conexão
+        with conn.cursor() as c:
+            c.execute("SELECT 1")
+
         return conn
+
     except Exception as e:
-        print("ERRO AO OBTER CONEXÃO:", e)
-        return None
+
+        print("⚠ Conexão inválida. Recriando pool...", e)
+
+        try:
+            criar_pool()
+            conn = connection_pool.getconn()
+            return conn
+        except Exception as e2:
+            print("❌ Falha ao reconectar:", e2)
+            return None
 
 def fechar_conexao(conn):
     global connection_pool
 
     try:
-        connection_pool.putconn(conn)
+        if connection_pool and conn:
+            connection_pool.putconn(conn)
     except Exception as e:
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
