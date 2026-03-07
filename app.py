@@ -14,19 +14,19 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+connection_pool = None
 
 try:
-    db_pool = psycopg2.pool.SimpleConnectionPool(
+    connection_pool = psycopg2.pool.SimpleConnectionPool(
         1,
         10,
-        DATABASE_URL,
-        sslmode="require"
+        DATABASE_URL
     )
-    print("Pool de conexões criado com sucesso")
+    print("Pool de conexões criado")
 except Exception as e:
-    print("ERRO AO CRIAR POOL:", e)
-    db_pool = None
+    print("Erro ao criar pool:", e)
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
@@ -35,15 +35,20 @@ app.secret_key = "quermesse_secret"
 # CONEXÃO POSTGRES
 # =========================
 def conectar():
+    global connection_pool
+
     try:
-        return db_pool.getconn()
+        conn = connection_pool.getconn()
+        return conn
     except Exception as e:
         print("ERRO AO OBTER CONEXÃO:", e)
         return None
 
 def fechar_conexao(conn):
+    global connection_pool
+
     try:
-        db_pool.putconn(conn)
+        connection_pool.putconn(conn)
     except Exception as e:
         print("ERRO AO DEVOLVER CONEXÃO:", e)
 
@@ -70,18 +75,20 @@ def autenticar():
 
     if conn is None:
         return "Erro ao conectar no banco", 500
-
-    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-
-    c.execute(
-        "SELECT * FROM usuarios WHERE usuario=%s",
-        (usuario,)
-    )
-
-    user = c.fetchone()
-
-    c.close()
-    fechar_conexao(conn)
+    
+    try:
+        c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    
+        c.execute(
+            "SELECT * FROM usuarios WHERE usuario=%s",
+            (usuario,)
+        )
+    
+        user = c.fetchone()
+    
+    finally:
+        c.close()
+        fechar_conexao(conn)
 
     if user and check_password_hash(user["senha"], senha):
         session["usuario_id"] = user["id"]
