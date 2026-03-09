@@ -4,6 +4,7 @@ import psycopg2
 import psycopg2.extras
 import os
 import base64
+import qrcode
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -13,7 +14,6 @@ from reportlab.lib import colors
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
-from pixqrcode import Pix
 from io import BytesIO
 
 app = Flask(__name__)
@@ -508,22 +508,27 @@ def cancelar_venda():
 # =========================
 # FUNÇÃO GERA PIX
 # =========================
-from pixqrcode import Pix
-import base64
-from io import BytesIO
-
-
 def gerar_pix(valor):
 
-    pix = Pix(
-        "PAROQUIA SAO JOAO BATISTA",
-        "comsaofrancisco@paroquiasjb.org.br",
-        "IGARAPE"
-    )
+    chave = "comsaofrancisco@paroquiasjb.org.br"
+    nome = "PAROQUIA SAO JOAO BATISTA"
+    cidade = "IGARAPE"
 
-    img = pix.qrcode(str(valor))
+    payload = f"""
+000201
+26580014BR.GOV.BCB.PIX
+0136{chave}
+52040000
+5303986
+54{len(str(valor))}{valor}
+5802BR
+59{len(nome)}{nome}
+60{len(cidade)}{cidade}
+62070503***
+6304
+""".replace("\n", "")
 
-    payload = pix.copia_cola(str(valor))
+    img = qrcode.make(payload)
 
     buffer = BytesIO()
     img.save(buffer, format="PNG")
