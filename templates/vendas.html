@@ -231,7 +231,14 @@ document.getElementById("pix_copia_cola").value=
 data.copia_cola
 
 })
+.catch(erro => {
 
+console.error("Erro ao gerar PIX:", erro)
+
+alert("Erro ao gerar PIX. Verifique a conexão.")
+
+})
+    
 }
 
 
