@@ -508,18 +508,22 @@ def cancelar_venda():
 # =========================
 # FUNÇÃO GERA PIX
 # =========================
+from pixqrcode import Pix
+import base64
+from io import BytesIO
+
+
 def gerar_pix(valor):
 
     pix = Pix(
-        name="PARÓQUIA SÃO JOÃO BATISTA",
-        key="comsaofrancisco@paroquiasjb.org.br",
-        city="PRESIDENTE MÉDICI",
-        value=str(valor)
+        "PAROQUIA SAO JOAO BATISTA",
+        "comsaofrancisco@paroquiasjb.org.br",
+        "IGARAPE"
     )
 
-    payload = pix.to_payload()
+    img = pix.qrcode(str(valor))
 
-    img = pix.qrcode()
+    payload = pix.copia_cola(str(valor))
 
     buffer = BytesIO()
     img.save(buffer, format="PNG")
