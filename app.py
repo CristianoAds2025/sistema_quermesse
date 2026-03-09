@@ -511,15 +511,13 @@ from pixqrcode import Pix
 
 def gerar_pix(valor):
 
-    pix = Pix()
-
-    payload = pix.payload(
-        pix_key="comsaofrancisco@paroquiasjb.org.br",
-        description="Pagamento Quermesse",
-        merchant_name="QUERMESSE",
-        merchant_city="IGARAPE",
-        amount=str(valor)
+    pix = Pix(
+        "QUERMESSE SAO FRANCISCO",   # nome do recebedor
+        "comsaofrancisco@paroquiasjb.org.br",   # chave PIX
+        "IGARAPE"
     )
+
+    payload = pix.payload(valor)
 
     qrcode_base64 = pix.qrcode_base64(payload)
 
