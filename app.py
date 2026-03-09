@@ -4,7 +4,7 @@ import psycopg2
 import psycopg2.extras
 import os
 import base64
-import qrcode
+from pybrcode.pix import generate_simple_pix
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -508,66 +508,23 @@ def cancelar_venda():
 # =========================
 # FUNÇÃO GERA PIX
 # =========================
-import qrcode
-import base64
-from io import BytesIO
-
-
-def calcular_crc16(payload):
-
-    polinomio = 0x1021
-    resultado = 0xFFFF
-
-    for c in payload:
-        resultado ^= ord(c) << 8
-
-        for _ in range(8):
-            if (resultado & 0x8000) != 0:
-                resultado = (resultado << 1) ^ polinomio
-            else:
-                resultado <<= 1
-
-            resultado &= 0xFFFF
-
-    return format(resultado, '04X')
-
-
 def gerar_pix(valor):
 
-    chave = "comsaofrancisco@paroquiasjb.org.br"
-    nome = "COMUNIDADE SAO FRANCISCO"
-    cidade = "PRESIDENTE MÉDICI"
-
-    valor_str = f"{float(valor):.2f}"
-
-    payload = (
-        "000201"
-        "26580014BR.GOV.BCB.PIX"
-        f"01{len(chave):02}{chave}"
-        "52040000"
-        "5303986"
-        f"54{len(valor_str):02}{valor_str}"
-        "5802BR"
-        f"59{len(nome):02}{nome}"
-        f"60{len(cidade):02}{cidade}"
-        "62070503***"
-        "6304"
+    pix = generate_simple_pix(
+        fullname="PAROQUIA SAO JOAO BATISTA",
+        key="comsaofrancisco@paroquiasjb.org.br",
+        city="PRESIDENTE MEDICI",
+        value=float(valor),
+        mult_transaction=False
     )
 
-    crc = calcular_crc16(payload)
+    qrcode_base64 = pix.toBase64()
 
-    payload_completo = payload + crc
-
-    img = qrcode.make(payload_completo)
-
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-
-    qrcode_base64 = base64.b64encode(buffer.getvalue()).decode()
+    payload = str(pix)
 
     return {
         "qrcode": qrcode_base64,
-        "copia_cola": payload_completo
+        "copia_cola": payload
     }
 # =========================
 # ROTA GERA PIX
