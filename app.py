@@ -513,7 +513,7 @@ def gerar_pix(valor):
     pix = generate_simple_pix(
         fullname="PAROQUIA SAO JOAO BATISTA",
         key="comsaofrancisco@paroquiasjb.org.br",
-        city="PRESIDENTE MEDICI",
+        city="PRES. MEDICI",
         value=float(valor),
         mult_transaction=False
     )
