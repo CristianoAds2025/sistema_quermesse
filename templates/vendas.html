@@ -639,43 +639,61 @@ function calcularTroco(){
 
 <script>
 
-document.getElementById("forma_pagamento").addEventListener("change", function(){
+document.querySelectorAll('input[name="formaPagamento"]').forEach(radio => {
 
-    let forma = this.value
+    radio.addEventListener("change", function(){
 
-    if(forma == "PIX"){
+        const areaPix = document.getElementById("area_pix");
+        const areaDinheiro = document.getElementById("areaDinheiro");
 
-        let valor = document.getElementById("valor_total").value
+        // RESET VISUAL
+        areaPix.style.display = "none";
+        areaDinheiro.style.display = "none";
 
-        fetch("/gerar_pix",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body: JSON.stringify({
-                valor: valor
+        // DINHEIRO
+        if(this.value === "Dinheiro"){
+            areaDinheiro.style.display = "block";
+        }
+
+        // PIX
+        if(this.value === "Pix"){
+
+            const total = parseFloat(
+                document.getElementById("valorTotal").innerText
+            );
+
+            if(!total || total <= 0){
+                alert("Adicione produtos antes de gerar o PIX");
+                return;
+            }
+
+            fetch("/gerar_pix",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body: JSON.stringify({
+                    valor: total
+                })
             })
-        })
-        .then(r => r.json())
-        .then(data => {
+            .then(r => r.json())
+            .then(data => {
 
-            document.getElementById("area_pix").style.display = "block"
+                areaPix.style.display = "block";
 
-            document.getElementById("qrcode_pix").src =
-                "data:image/png;base64," + data.qrcode
+                document.getElementById("qrcode_pix").src =
+                    "data:image/png;base64," + data.qrcode;
 
-            document.getElementById("pix_copia_cola").value =
-                data.copia_cola
+                document.getElementById("pix_copia_cola").value =
+                    data.copia_cola;
 
-        })
+            });
 
-    }else{
+        }
 
-        document.getElementById("area_pix").style.display = "none"
+    });
 
-    }
-
-})
+});
 
 </script>
 
