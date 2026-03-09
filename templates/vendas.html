@@ -92,7 +92,24 @@
         </div>
     
     </div>
+
+    <div id="area_pix" style="display:none" class="mt-4">
+
+        <h5>Pagamento via PIX</h5>
     
+        <img id="qrcode_pix" style="max-width:250px">
+    
+        <div class="mt-3">
+            <label>PIX Copia e Cola</label>
+    
+            <textarea id="pix_copia_cola"
+            class="form-control"
+            rows="3"
+            readonly></textarea>
+        </div>
+    
+    </div>
+
     <div id="areaDinheiro" style="display:none;" class="mt-3">
     
         <label class="form-label fw-bold">Valor Recebido</label>
@@ -618,6 +635,48 @@ function calcularTroco(){
     trocoSpan.innerText = troco.toFixed(2);
 }
     
+</script>
+
+<script>
+
+document.getElementById("forma_pagamento").addEventListener("change", function(){
+
+    let forma = this.value
+
+    if(forma == "PIX"){
+
+        let valor = document.getElementById("valor_total").value
+
+        fetch("/gerar_pix",{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                valor: valor
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+
+            document.getElementById("area_pix").style.display = "block"
+
+            document.getElementById("qrcode_pix").src =
+                "data:image/png;base64," + data.qrcode
+
+            document.getElementById("pix_copia_cola").value =
+                data.copia_cola
+
+        })
+
+    }else{
+
+        document.getElementById("area_pix").style.display = "none"
+
+    }
+
+})
+
 </script>
 
 {% endblock %}
