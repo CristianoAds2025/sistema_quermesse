@@ -506,18 +506,26 @@ def cancelar_venda():
 # =========================
 # FUNÇÃO GERA PIX
 # =========================
+from pixqrcode import Pix
+
+
 def gerar_pix(valor):
 
-    pix = Pix(
-        chave="comsaofrancisco@paroquiasjb.org.br",   # email, telefone ou chave aleatória
-        nome="PARÓQUIA SÃO JOÃO BATISTA",
-        cidade="PRESIDENTE MÉDICI",
-        valor=valor
+    pix = Pix()
+
+    payload = pix.payload(
+        pix_key="comsaofrancisco@paroquiasjb.org.br",
+        description="Pagamento Quermesse",
+        merchant_name="QUERMESSE",
+        merchant_city="IGARAPE",
+        amount=str(valor)
     )
 
+    qrcode_base64 = pix.qrcode_base64(payload)
+
     return {
-        "qrcode": pix.qrcode_base64(),
-        "copia_cola": pix.payload()
+        "qrcode": qrcode_base64,
+        "copia_cola": payload
     }
 
 # =========================
@@ -526,7 +534,8 @@ def gerar_pix(valor):
 @app.route("/gerar_pix", methods=["POST"])
 def rota_gerar_pix():
 
-    valor = float(request.json["valor"])
+    data = request.get_json()
+    valor = data.get("valor")
 
     pix = gerar_pix(valor)
 
