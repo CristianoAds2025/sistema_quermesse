@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, session, send_file,
 import psycopg2
 import psycopg2.extras
 import os
+import base64
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -13,6 +14,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
 from pixqrcode import Pix
+from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
@@ -506,20 +508,23 @@ def cancelar_venda():
 # =========================
 # FUNÇÃO GERA PIX
 # =========================
-from pixqrcode import Pix
-
-
 def gerar_pix(valor):
 
     pix = Pix(
-        "QUERMESSE SAO FRANCISCO",   # nome do recebedor
-        "comsaofrancisco@paroquiasjb.org.br",   # chave PIX
-        "IGARAPE"
+        name="PARÓQUIA SÃO JOÃO BATISTA",
+        key="comsaofrancisco@paroquiasjb.org.br",
+        city="PRESIDENTE MÉDICI",
+        value=str(valor)
     )
 
-    payload = pix.payload(valor)
+    payload = pix.to_payload()
 
-    qrcode_base64 = pix.qrcode_base64(payload)
+    img = pix.qrcode()
+
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+
+    qrcode_base64 = base64.b64encode(buffer.getvalue()).decode()
 
     return {
         "qrcode": qrcode_base64,
