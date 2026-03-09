@@ -508,27 +508,57 @@ def cancelar_venda():
 # =========================
 # FUNÇÃO GERA PIX
 # =========================
+import qrcode
+import base64
+from io import BytesIO
+
+
+def calcular_crc16(payload):
+
+    polinomio = 0x1021
+    resultado = 0xFFFF
+
+    for c in payload:
+        resultado ^= ord(c) << 8
+
+        for _ in range(8):
+            if (resultado & 0x8000) != 0:
+                resultado = (resultado << 1) ^ polinomio
+            else:
+                resultado <<= 1
+
+            resultado &= 0xFFFF
+
+    return format(resultado, '04X')
+
+
 def gerar_pix(valor):
 
     chave = "comsaofrancisco@paroquiasjb.org.br"
-    nome = "PAROQUIA SAO JOAO BATISTA"
-    cidade = "IGARAPE"
+    nome = "COMUNIDADE SAO FRANCISCO"
+    cidade = "PRESIDENTE MÉDICI"
 
-    payload = f"""
-000201
-26580014BR.GOV.BCB.PIX
-0136{chave}
-52040000
-5303986
-54{len(str(valor))}{valor}
-5802BR
-59{len(nome)}{nome}
-60{len(cidade)}{cidade}
-62070503***
-6304
-""".replace("\n", "")
+    valor_str = f"{float(valor):.2f}"
 
-    img = qrcode.make(payload)
+    payload = (
+        "000201"
+        "26580014BR.GOV.BCB.PIX"
+        f"01{len(chave):02}{chave}"
+        "52040000"
+        "5303986"
+        f"54{len(valor_str):02}{valor_str}"
+        "5802BR"
+        f"59{len(nome):02}{nome}"
+        f"60{len(cidade):02}{cidade}"
+        "62070503***"
+        "6304"
+    )
+
+    crc = calcular_crc16(payload)
+
+    payload_completo = payload + crc
+
+    img = qrcode.make(payload_completo)
 
     buffer = BytesIO()
     img.save(buffer, format="PNG")
@@ -537,9 +567,8 @@ def gerar_pix(valor):
 
     return {
         "qrcode": qrcode_base64,
-        "copia_cola": payload
+        "copia_cola": payload_completo
     }
-
 # =========================
 # ROTA GERA PIX
 # =========================
