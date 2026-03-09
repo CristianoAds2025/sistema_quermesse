@@ -317,6 +317,14 @@ function atualizarListaVisual(){
 
     document.getElementById("valorTotal").innerText =
         totalVenda.toFixed(2);
+
+    const pixSelecionado =
+        document.querySelector('input[name="formaPagamento"]:checked');
+
+    if(pixSelecionado && pixSelecionado.value === "Pix"){
+        gerarPix();
+    }
+    
 }
 
 function atualizarEstoqueSelect(id, quantidadeAlterada){
