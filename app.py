@@ -12,6 +12,7 @@ from reportlab.lib import colors
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from werkzeug.security import generate_password_hash, check_password_hash
+from pixqrcode import Pix
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
@@ -501,6 +502,35 @@ def cancelar_venda():
 
     finally:
         conn.close()
+
+# =========================
+# FUNÇÃO GERA PIX
+# =========================
+def gerar_pix(valor):
+
+    pix = Pix(
+        chave="comsaofrancisco@paroquiasjb.org.br",   # email, telefone ou chave aleatória
+        nome="PARÓQUIA SÃO JOÃO BATISTA",
+        cidade="PRESIDENTE MÉDICI",
+        valor=valor
+    )
+
+    return {
+        "qrcode": pix.qrcode_base64(),
+        "copia_cola": pix.payload()
+    }
+
+# =========================
+# ROTA GERA PIX
+# =========================
+@app.route("/gerar_pix", methods=["POST"])
+def rota_gerar_pix():
+
+    valor = float(request.json["valor"])
+
+    pix = gerar_pix(valor)
+
+    return jsonify(pix)
 
 # =========================
 # ESTOQUE ATUAL
