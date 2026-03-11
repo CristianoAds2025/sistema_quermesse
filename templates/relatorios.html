@@ -113,7 +113,7 @@ title="Visualizar itens">
 
 <form method="post"
 action="/excluir_venda/{{ v.numero_venda }}"
-onsubmit="return confirmarExclusao();"
+onsubmit="return confirmarExclusao({{ v.numero_venda }});"
 style="display:inline;">
 
 <button type="submit"
