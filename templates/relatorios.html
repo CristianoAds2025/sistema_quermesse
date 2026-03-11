@@ -102,21 +102,26 @@ Limpar
 <td>R$ {{ "%.2f"|format(v.total) }}</td>
 <td>{{ v.nome_usuario }}</td>
 
-<td>
+<td class="text-center">
 
 <button
-class="btn btn-sm btn-info me-1"
-onclick="verItens({{ v.numero_venda }})">
-Itens
+class="btn btn-sm btn-primary me-1"
+onclick="verItens({{ v.numero_venda }})"
+title="Visualizar itens">
+<i class="bi bi-list"></i>
 </button>
 
 <form method="post"
 action="/excluir_venda/{{ v.numero_venda }}"
 onsubmit="return confirmarExclusao();"
 style="display:inline;">
-<button class="btn btn-sm btn-danger">
-Excluir
+
+<button type="submit"
+class="btn btn-sm btn-danger"
+title="Excluir venda">
+<i class="bi bi-trash"></i>
 </button>
+
 </form>
 
 </td>
