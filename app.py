@@ -4,6 +4,7 @@ import psycopg2
 import psycopg2.extras
 import os
 import base64
+import mercadopago
 from pybrcode.pix import generate_simple_pix
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -18,6 +19,13 @@ from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = "quermesse_secret"
+
+# =========================
+# MERCADO PAGO
+# =========================
+MP_ACCESS_TOKEN = os.getenv("MP_ACCESS_TOKEN")
+
+sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
 # =========================
 # CONEXÃO POSTGRES
@@ -510,21 +518,25 @@ def cancelar_venda():
 # =========================
 def gerar_pix(valor):
 
-    pix = generate_simple_pix(
-        fullname="PAROQUIA SAO JOAO BATISTA",
-        key="comsaofrancisco@paroquiasjb.org.br",
-        city="PRES. MEDICI",
-        value=float(valor),
-        mult_transaction=False
-    )
+    payment_data = {
+        "transaction_amount": float(valor),
+        "description": "Venda Quermesse",
+        "payment_method_id": "pix",
+        "payer": {
+            "email": "cliente@quermesse.com"
+        }
+    }
 
-    qrcode_base64 = pix.toBase64()
+    payment_response = sdk.payment().create(payment_data)
+    payment = payment_response["response"]
 
-    payload = str(pix)
+    qr_code_base64 = payment["point_of_interaction"]["transaction_data"]["qr_code_base64"]
+    copia_cola = payment["point_of_interaction"]["transaction_data"]["qr_code"]
 
     return {
-        "qrcode": qrcode_base64,
-        "copia_cola": payload
+        "qrcode": "data:image/png;base64," + qr_code_base64,
+        "copia_cola": copia_cola,
+        "payment_id": payment["id"]
     }
 # =========================
 # ROTA GERA PIX
@@ -537,7 +549,11 @@ def rota_gerar_pix():
 
     pix = gerar_pix(valor)
 
-    return jsonify(pix)
+return jsonify({
+    "qrcode": pix["qrcode"],
+    "copia_cola": pix["copia_cola"],
+    "payment_id": pix["payment_id"]
+})
 
 # =========================
 # ESTOQUE ATUAL
@@ -1354,6 +1370,28 @@ def resetar_quermesse():
         conn.close()
 
     return redirect("/dashboard")
+
+# =========================
+# WEBHOOK MERCADO PAGO
+# =========================
+@app.route("/webhook_mp", methods=["POST"])
+def webhook_mp():
+
+    data = request.json
+
+    if data.get("type") == "payment":
+
+        payment_id = data["data"]["id"]
+
+        payment = sdk.payment().get(payment_id)["response"]
+
+        if payment["status"] == "approved":
+            print("Pagamento aprovado:", payment_id)
+
+            # Aqui você pode marcar a venda como paga
+            # se quiser integrar com banco futuramente
+
+    return "OK", 200
 
 @app.route("/health")
 def health():
