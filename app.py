@@ -1094,7 +1094,35 @@ def relatorios():
         filtro_usuario_id=usuario_id,
         filtro_numero_venda=numero_venda
     )
-    
+
+# =========================
+# ITENS DA VENDA
+# =========================
+@app.route("/itens_venda/<int:numero_venda>")
+def itens_venda(numero_venda):
+
+    if "usuario" not in session:
+        return jsonify({"erro": "Não autorizado"}), 403
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    c.execute("""
+        SELECT 
+            p.descricao,
+            v.quantidade,
+            v.valor_total
+        FROM vendas v
+        JOIN produtos p ON p.id = v.produto_id
+        WHERE v.numero_venda = %s
+    """, (numero_venda,))
+
+    itens = c.fetchall()
+
+    conn.close()
+
+    return jsonify(itens)
+
 # =========================
 # PDF
 # =========================
