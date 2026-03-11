@@ -506,6 +506,65 @@ def cancelar_venda():
         conn.close()
 
 # =========================
+# EXCLUIR VENDA (RELATÓRIO)
+# =========================
+@app.route("/excluir_venda/<int:numero_venda>", methods=["POST"])
+def excluir_venda(numero_venda):
+
+    if "usuario" not in session:
+        return redirect("/")
+
+    if session.get("perfil") != "administrador":
+        flash("Acesso restrito!", "danger")
+        return redirect("/relatorios")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    try:
+
+        # Buscar itens da venda
+        c.execute("""
+            SELECT produto_id, quantidade
+            FROM vendas
+            WHERE numero_venda = %s
+        """, (numero_venda,))
+        itens = c.fetchall()
+
+        if not itens:
+            flash("Venda não encontrada.", "danger")
+            conn.close()
+            return redirect("/relatorios")
+
+        # Restaurar estoque
+        for item in itens:
+            c.execute("""
+                UPDATE produtos
+                SET estoque_atual = estoque_atual + %s
+                WHERE id = %s
+            """, (item["quantidade"], item["produto_id"]))
+
+        # Excluir venda
+        c.execute("""
+            DELETE FROM vendas
+            WHERE numero_venda = %s
+        """, (numero_venda,))
+
+        conn.commit()
+
+        flash(f"Venda {numero_venda} excluída com sucesso!", "success")
+
+    except Exception as e:
+        conn.rollback()
+        flash("Erro ao excluir venda.", "danger")
+        print(e)
+
+    finally:
+        conn.close()
+
+    return redirect("/relatorios")
+
+# =========================
 # FUNÇÃO GERA PIX
 # =========================
 def gerar_pix(valor):
