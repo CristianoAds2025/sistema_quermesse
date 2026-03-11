@@ -88,6 +88,7 @@ Limpar
 <th>Forma Pagamento</th>
 <th>Valor Total (R$)</th>
 <th>Usuário</th>
+<th>Ação</th>    
 </tr>
 </thead>
 
@@ -100,6 +101,20 @@ Limpar
 <td>{{ v.forma_pagamento }}</td>
 <td>R$ {{ "%.2f"|format(v.total) }}</td>
 <td>{{ v.nome_usuario }}</td>
+
+<td>
+
+<form method="post"
+action="/excluir_venda/{{ v.numero_venda }}"
+onsubmit="return confirmarExclusao({{ v.numero_venda }})">
+
+<button class="btn btn-danger btn-sm">
+Excluir
+</button>
+
+</form>
+
+</td>
 </tr>
 {% endfor %}
 
@@ -129,5 +144,15 @@ Exportar Excel
 </a>
 
 </div>
+
+<script>
+
+function confirmarExclusao(numero){
+
+return confirm("Tem certeza que deseja excluir a venda nº " + numero + "?");
+
+}
+
+</script>
 
 {% endblock %}
