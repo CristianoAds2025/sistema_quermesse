@@ -104,14 +104,19 @@ Limpar
 
 <td>
 
-<form method="post"
-action="/excluir_venda/{{ v.numero_venda }}"
-onsubmit="return confirmarExclusao({{ v.numero_venda }})">
-
-<button class="btn btn-danger btn-sm">
-Excluir
+<button
+class="btn btn-sm btn-info me-1"
+onclick="verItens({{ v.numero_venda }})">
+Itens
 </button>
 
+<form method="post"
+action="/excluir_venda/{{ v.numero_venda }}"
+onsubmit="return confirmarExclusao();"
+style="display:inline;">
+<button class="btn btn-sm btn-danger">
+Excluir
+</button>
 </form>
 
 </td>
