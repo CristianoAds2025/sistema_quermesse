@@ -187,7 +187,36 @@ function confirmarExclusao(numero){
 
 return confirm("Tem certeza que deseja excluir a venda nº " + numero + "?");
 
-}
+function verItens(numero){
+
+fetch("/itens_venda/" + numero)
+
+.then(r => r.json())
+
+.then(data => {
+
+let tabela = document.getElementById("tabela_itens")
+
+tabela.innerHTML = ""
+
+data.forEach(item => {
+
+tabela.innerHTML += `
+<tr>
+<td>${item.descricao}</td>
+<td>${item.quantidade}</td>
+<td>R$ ${parseFloat(item.valor_total).toFixed(2)}</td>
+</tr>
+`
+
+})
+
+let modal = new bootstrap.Modal(document.getElementById("modalItens"))
+modal.show()
+
+})
+
+}    
 
 </script>
 
