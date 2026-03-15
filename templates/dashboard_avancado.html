@@ -28,7 +28,9 @@
 
 <h5>Vendas por Forma de Pagamento</h5>
 <table class="table table-striped">
+<thead class="table-dark">
 <tr><th>Forma</th><th>Total</th></tr>
+</thead>
 {% for item in por_forma %}
 <tr>
 <td>{{ item.forma_pagamento }}</td>
