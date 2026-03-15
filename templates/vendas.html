@@ -25,7 +25,7 @@
                         data-descricao="{{p.descricao}}"
                         data-valor="{{p.valor}}"
                         data-estoque="{{p.estoque_atual}}"
-                        data-imprime="{{p.imprimir_cupom}}">
+                        data-imprime="{{ 'true' if p.imprimir_cupom else 'false' }}"
                     {{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque_atual}})
                 </option>
                 {% endfor %}
@@ -395,13 +395,13 @@ function adicionarProduto(){
     }
 
     for(let i = 0; i < quantidade; i++){
-        const imprimeAttr = option.getAttribute("data-imprime");
+        const imprime = option.getAttribute("data-imprime") === "true";
 
         const item = {
         id,
         descricao,
         valor,
-        imprime: !(imprimeAttr === "false" || imprimeAttr === "0" || imprimeAttr === "f")
+        imprime
         };
         itensVenda.push(item);
         totalVenda += valor;
