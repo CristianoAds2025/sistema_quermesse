@@ -230,15 +230,15 @@ def produtos():
         descricao = request.form["descricao"]
         valor = float(request.form["valor"].replace(",", "."))
         estoque_inicial = int(request.form["estoque_inicial"])
-
+        imprimir_cupom = True if request.form.get("imprimir_cupom") else False
+        
         # estoque atual começa igual ao inicial
         estoque_atual = estoque_inicial
 
         c.execute("""
-            INSERT INTO produtos 
-            (descricao, valor, estoque_inicial, estoque_atual) 
-            VALUES (%s, %s, %s, %s)
-        """, (descricao, valor, estoque_inicial, estoque_atual))
+            INSERT INTO produtos (descricao, valor, estoque_inicial, estoque_atual, imprimir_cupom)
+            VALUES (%s, %s, %s, %s, %s)
+            """, (descricao, valor, estoque_inicial, estoque_atual, imprimir_cupom))
 
         conn.commit()
         flash("Produto cadastrado com sucesso!", "success")
