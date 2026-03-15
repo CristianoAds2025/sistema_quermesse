@@ -264,19 +264,21 @@ def editar_produto(id):
         descricao = request.form["descricao"]
         valor = float(request.form["valor"].replace(",", "."))
         estoque_inicial = int(request.form["estoque_inicial"])
+        imprimir_cupom = True if request.form.get("imprimir_cupom") else False
 
         # 👇 AQUI ESTÁ O AJUSTE
         estoque_atual = estoque_inicial
 
         c.execute("""
-            UPDATE produtos
-            SET descricao = %s,
-                valor = %s,
-                estoque_inicial = %s,
-                estoque_atual = %s
-            WHERE id = %s
-        """, (descricao, valor, estoque_inicial, estoque_atual, id))
-
+        UPDATE produtos
+        SET descricao = %s,
+            valor = %s,
+            estoque_inicial = %s,
+            estoque_atual = %s,
+            imprimir_cupom = %s
+        WHERE id = %s
+        """, (descricao, valor, estoque_inicial, estoque_atual, imprimir_cupom, id))
+        
         conn.commit()
         conn.close()
 
