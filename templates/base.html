@@ -53,6 +53,9 @@
   <div class="container-fluid">
     <span class="navbar-brand">Quermesse Online - Comunidade SFA</span>
     {% if session.get('usuario') %}
+        <a href="/dashboard" class="btn btn-sm btn-light"
+        title="Página Inicial">
+        <i class="bi bi-house-door-fill"></i></a>
         <a href="/logout" class="btn btn-danger">Sair</a>
     {% endif %}
   </div>
