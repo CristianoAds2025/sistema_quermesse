@@ -31,6 +31,20 @@
                            value="{{ produto.estoque_inicial }}"
                            required>
 
+                    <div class="form-check mb-3">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               name="imprimir_cupom"
+                               id="imprimir_cupom"
+                               {% if produto.imprimir_cupom %}checked{% endif %}>
+                    
+                        <label class="form-check-label" for="imprimir_cupom">
+                            Imprimir no cupom
+                        </label>
+                    
+                    </div>
+                    
                     <div class="text-center">
                         <button class="btn btn-success px-4">
                             Salvar Alterações
