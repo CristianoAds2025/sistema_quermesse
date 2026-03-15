@@ -395,13 +395,13 @@ function adicionarProduto(){
     }
 
     for(let i = 0; i < quantidade; i++){
-        const imprime = option.getAttribute("data-imprime") === "true";
+        const imprimeAttr = option.getAttribute("data-imprime");
 
         const item = {
         id,
         descricao,
         valor,
-        imprime
+        imprime: !(imprimeAttr === "false" || imprimeAttr === "0" || imprimeAttr === "f")
         };
         itensVenda.push(item);
         totalVenda += valor;
