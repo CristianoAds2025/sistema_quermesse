@@ -43,7 +43,9 @@
 
 <h5>Vendas por Produtos</h5>
 <table class="table table-striped">
+<thead class="table-dark">
 <tr><th>Produto</th><th>Quantidade</th><th>Total</th></tr>
+</thead>
 {% for p in mais_vendidos %}
 <tr>
 <td>{{ p.descricao }}</td>
@@ -57,7 +59,9 @@
 
 <h5>Vendas por Operador de Caixa</h5>
 <table class="table table-striped">
+<thead class="table-dark">
 <tr><th>Operador</th><th>Vendas</th><th>Total</th></tr>
+</thead>
 {% for o in por_operador %}
 <tr>
 <td>{{ o.nome_usuario }}</td>
