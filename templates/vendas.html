@@ -537,8 +537,17 @@ function salvarVenda(){
         window.numeroVendaAtual = data.numero_venda;
         window.dataVendaAtual = data.data_venda;
 
-        imprimirCupom(window.itensUltimaVenda, janelaImpressao);
+        const temItemImprimivel = window.itensUltimaVenda.some(item => item.imprime);
 
+        if(temItemImprimivel){
+            imprimirCupom(window.itensUltimaVenda, janelaImpressao);
+        }else{
+            // fecha a janela se nenhum item precisa imprimir
+            if(janelaImpressao){
+                janelaImpressao.close();
+            }
+        }
+        
         atualizarEstoqueVisual();
         
         // Reset
