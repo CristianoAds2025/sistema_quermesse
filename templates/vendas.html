@@ -24,7 +24,8 @@
                 <option value="{{p.id}}"
                         data-descricao="{{p.descricao}}"
                         data-valor="{{p.valor}}"
-                        data-estoque="{{p.estoque_atual}}">
+                        data-estoque="{{p.estoque_atual}}"
+                        data-imprime="{{p.imprimir_cupom}}">
                     {{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque_atual}})
                 </option>
                 {% endfor %}
@@ -394,7 +395,14 @@ function adicionarProduto(){
     }
 
     for(let i = 0; i < quantidade; i++){
-        const item = {id, descricao, valor};
+        const imprime = option.getAttribute("data-imprime") === "true";
+
+        const item = {
+        id,
+        descricao,
+        valor,
+        imprime
+        };
         itensVenda.push(item);
         totalVenda += valor;
         estoqueControle[id] += 1;
@@ -587,7 +595,11 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
     }
 
     let total = 0;
-    listaItens.forEach(i => total += i.valor);
+    listaItens.forEach(i => {
+    if(i.imprime){
+    total += i.valor;
+    }
+    });
 
     if(!janela){
         janela = window.open('', '', 'width=300,height=800');
@@ -633,6 +645,10 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
     `;
 
     listaItens.forEach(item => {
+
+    if(!item.imprime){
+    return;
+    }
     conteudo += `
         <div class="item">
             <div>${item.descricao}</div>
