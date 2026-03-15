@@ -25,7 +25,7 @@
                         data-descricao="{{p.descricao}}"
                         data-valor="{{p.valor}}"
                         data-estoque="{{p.estoque_atual}}"
-                        data-imprime="{{ 'true' if p.imprimir_cupom else 'false' }}"
+                        data-imprime="{{ 'true' if p.imprimir_cupom else 'false' }}">
                     {{p.descricao}} - R$ {{p.valor}} (Estoque: {{p.estoque_atual}})
                 </option>
                 {% endfor %}
