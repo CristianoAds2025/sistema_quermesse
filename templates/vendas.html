@@ -627,7 +627,10 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
             }
         
             .item{
-                margin:12px 0;   /* 🔥 AUMENTA ESPAÇAMENTO */
+                margin:18px 0;
+                line-height:1.6;
+                padding:4px 0;
+                font-size:18px;
             }
         
             hr{
@@ -644,7 +647,6 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
     <body>
 
         <h3>COMUNIDADE SÃO FRANCISCO DE ASSIS</h3>
-        <div>Quermesse</div>
         <hr>
 
         <div><strong>Venda Nº:</strong> ${window.numeroVendaAtual}</div>
