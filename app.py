@@ -877,10 +877,12 @@ def fechamento():
     total_geral = sum(float(r["total"] or 0) for r in resultado)
     total_troco = sum(float(r["total_troco"] or 0) for r in resultado)
 
+    data_formatada = datetime.strptime(data, "%Y-%m-%d").strftime("%d/%m/%Y")
+    
     return render_template(
         "fechamento.html",
         resultado=resultado,
-        data=data,
+        data=data_formatada,
         total_geral=total_geral,
         total_troco=total_troco
     )
