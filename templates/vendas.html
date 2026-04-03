@@ -52,7 +52,7 @@
     <h5>Itens da Venda</h5>
     <ul id="listaProdutos" class="list-group mb-3"></ul>
 
-    <h5>Total: R$ <span id="valorTotal">0.00</span></h5>
+    <h5>Total: R$ <span id="valorTotal">0,00</span></h5>
 
     <hr>
       
@@ -127,11 +127,11 @@
                min="0"
                id="valorRecebido"
                class="form-control"
-               placeholder="0.00"
+               placeholder="0,00"
                oninput="calcularTroco()">
     
         <div class="mt-2">
-            <strong>Troco: R$ <span id="trocoCalculado">0.00</span></strong>
+            <strong>Troco: R$ <span id="trocoCalculado">0,00</span></strong>
         </div>
     
     </div>
@@ -156,7 +156,7 @@
         <div class="fw-bold mb-3">
             Total da Venda:
             <span id="totalResumo" class="text-success fs-5">
-                R$ 0.00
+                R$ 0,00
             </span>
         </div>
     
@@ -552,7 +552,7 @@ function salvarVenda(){
         
         // Reset
         document.getElementById("listaProdutos").innerHTML = "";
-        document.getElementById("valorTotal").innerText = "0.00";
+        document.getElementById("valorTotal").innerText = "0,00";
         itensVenda = [];
         estoqueControle = {};
         totalVenda = 0;
@@ -737,7 +737,7 @@ document.querySelectorAll('input[name="formaPagamento"]').forEach(radio => {
         } else {
             areaDinheiro.style.display = "none";
             document.getElementById("valorRecebido").value = "";
-            document.getElementById("trocoCalculado").innerText = "0.00";
+            document.getElementById("trocoCalculado").innerText = "0,00";
         }
 
     });
@@ -750,7 +750,7 @@ function calcularTroco(){
     const trocoSpan = document.getElementById("trocoCalculado");
 
     if(isNaN(valorRecebido)){
-        trocoSpan.innerText = "0.00";
+        trocoSpan.innerText = "0,00";
         return;
     }
 
