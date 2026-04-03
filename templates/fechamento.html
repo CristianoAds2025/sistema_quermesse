@@ -36,16 +36,16 @@
 
 <tr>
 <td>{{ r.forma_pagamento }}</td>
-<td>R$ {{ "%,2f"|format(r.total or 0) }}</td>
-<td>R$ {{ "%,2f"|format(r.total_troco or 0) }}</td>
+<td>R$ {{ "%.2f"|format(r.total or 0) }}</td>
+<td>R$ {{ "%.2f"|format(r.total_troco or 0) }}</td>
 </tr>
 
 {% endfor %}
 
 <tr class="table-primary fw-bold">
 <td class="text-end">TOTAL GERAL</td>
-<td>R$ {{ "%,2f"|format(total_geral or 0) }}</td>
-<td>R$ {{ "%,2f"|format(total_troco or 0) }}</td>
+<td>R$ {{ "%.2f"|format(total_geral or 0) }}</td>
+<td>R$ {{ "%.2f"|format(total_troco or 0) }}</td>
 </tr>
 
 </tbody>
