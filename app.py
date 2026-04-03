@@ -847,7 +847,7 @@ def fechamento():
     data = request.args.get("data")
 
     if not data:
-        data = agora_amazonas().strftime("%d-%m-%Y")
+        data = agora_amazonas().strftime("%Y-%m-%d")
 
     conn = conectar()
     c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
