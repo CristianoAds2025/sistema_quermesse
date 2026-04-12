@@ -610,11 +610,14 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
         }
     });
 
-    // Detecta se é mobile
-    const isMobile = window.innerWidth <= 768;
-
-    // Define largura do papel
-    const largura = isMobile ? "58mm" : "80mm";
+    const isTouchDevice = (
+    'ontouchstart' in window ||
+    navigator.maxTouchPoints > 0
+    );
+    
+    const isPequeno = window.innerWidth <= 1024;
+    
+    const largura = (isTouchDevice && isPequeno) ? "58mm" : "80mm";
 
     if(!janela){
         janela = window.open('', '', `width=300,height=800`);
