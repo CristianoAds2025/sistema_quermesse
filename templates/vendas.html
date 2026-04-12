@@ -605,22 +605,33 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
 
     let total = 0;
     listaItens.forEach(i => {
-    if(i.imprime){
-    total += i.valor;
-    }
+        if(i.imprime){
+            total += i.valor;
+        }
     });
 
+    // Detecta se é mobile
+    const isMobile = window.innerWidth <= 768;
+
+    // Define largura do papel
+    const largura = isMobile ? "58mm" : "80mm";
+
     if(!janela){
-        janela = window.open('', '', 'width=300,height=800');
+        janela = window.open('', '', `width=300,height=800`);
     }
 
     let conteudo = `
     <html>
     <head>
         <style>
+            @page {
+                size: ${largura} auto;
+                margin: 0;
+            }
+
             body{
                 font-family: monospace;
-                width:58mm;
+                width:${largura};
                 margin:0;
                 padding:5px;
                 text-align:center;
@@ -657,16 +668,17 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
 
     listaItens.forEach(item => {
 
-    if(!item.imprime){
-    return;
-    }
-    conteudo += `
-        <div class="item">
-            <div>${item.descricao}</div>
-            <div>R$ ${item.valor.toFixed(2)}</div>
-        </div>
-        <hr>
-    `;
+        if(!item.imprime){
+            return;
+        }
+
+        conteudo += `
+            <div class="item">
+                <div>${item.descricao}</div>
+                <div>R$ ${item.valor.toFixed(2)}</div>
+            </div>
+            <hr>
+        `;
     });
 
     conteudo += `
@@ -674,8 +686,8 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
             TOTAL: R$ ${total.toFixed(2)}
         </div>
         <hr>
-        <div class="text-center text-muted mt-4">
-            <i class="bi bi-c-circle"></i> 2026 - Quermesse Online
+        <div>
+            © 2026 - Quermesse Online
         </div>
     </body>
     </html>
