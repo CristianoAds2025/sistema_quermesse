@@ -549,13 +549,11 @@ function salvarVenda(){
         }
         
         atualizarEstoqueVisual();
-        
-        // Reset
-        document.getElementById("listaProdutos").innerHTML = "";
-        document.getElementById("valorTotal").innerText = "0,00";
-        itensVenda = [];
-        estoqueControle = {};
-        totalVenda = 0;
+
+        // 🔥 aguarda um pouco e limpa a tela
+        setTimeout(() => {
+            resetarTelaVenda();
+        }, 1500);
     });
 }
 
