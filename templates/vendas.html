@@ -702,7 +702,32 @@ function imprimirCupom(listaItens = window.itensUltimaVenda, janela = null){
     janela.print();
 }
 
+function resetarTelaVenda(){
 
+    // Limpa lista e total da venda atual
+    document.getElementById("listaProdutos").innerHTML = "";
+    document.getElementById("valorTotal").innerText = "0,00";
+
+    itensVenda = [];
+    estoqueControle = {};
+    totalVenda = 0;
+
+    // Limpa forma de pagamento
+    document.querySelectorAll('input[name="formaPagamento"]').forEach(r => r.checked = false);
+
+    // Esconde áreas auxiliares
+    document.getElementById("area_pix").style.display = "none";
+    document.getElementById("areaDinheiro").style.display = "none";
+
+    // Limpa PIX
+    document.getElementById("qrcode_pix").src = "";
+    document.getElementById("pix_copia_cola").value = "";
+
+    // Limpa dinheiro
+    document.getElementById("valorRecebido").value = "";
+    document.getElementById("trocoCalculado").innerText = "0,00";
+}
+    
 function cancelarVenda(){
 
     if(!window.numeroVendaAtual){
