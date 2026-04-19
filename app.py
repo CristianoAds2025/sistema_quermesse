@@ -316,6 +316,51 @@ def zerar_estoque(id):
     return redirect("/produtos")
 
 # =========================
+# EXCLUIR PRODUTO
+# =========================
+@app.route("/excluir_produto/<int:id>", methods=["POST"])
+def excluir_produto(id):
+
+    if "usuario" not in session:
+        return redirect("/")
+
+    if session.get("perfil") != "administrador":
+        flash("Acesso restrito!", "danger")
+        return redirect("/produtos")
+
+    conn = conectar()
+    c = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+    try:
+        # Verifica se o produto existe
+        c.execute("SELECT id FROM produtos WHERE id = %s", (id,))
+        produto = c.fetchone()
+
+        if not produto:
+            flash("Produto não encontrado.", "danger")
+            conn.close()
+            return redirect("/produtos")
+
+        # 🔥 Excluir produto
+        c.execute("SELECT 1 FROM vendas WHERE produto_id = %s LIMIT 1", (id,))
+        if c.fetchone():
+            flash("Não é possível excluir produto que já possui vendas!", "danger")
+            conn.close()
+            return redirect("/produtos")
+
+        flash("Produto excluído com sucesso!", "success")
+
+    except Exception as e:
+        conn.rollback()
+        print("Erro ao excluir produto:", e)
+        flash("Erro ao excluir produto.", "danger")
+
+    finally:
+        conn.close()
+
+    return redirect("/produtos")
+
+# =========================
 # VENDAS (NOVO MODELO)
 # =========================
 
