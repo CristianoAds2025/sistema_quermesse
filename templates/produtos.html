@@ -124,19 +124,32 @@
                                    title="Editar">
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
-
+                            
                                 <form action="/zerar_estoque/{{ p.id }}"
                                       method="POST"
                                       style="display:inline-block;"
                                       onsubmit="return confirm('Deseja realmente zerar o estoque deste produto?');">
-
+                            
                                     <button type="submit"
                                             class="btn btn-sm btn-outline-danger"
                                             title="Zerar Estoque">
                                         <i class="bi bi-arrow-counterclockwise"></i>
                                     </button>
                                 </form>
-
+                            
+                                <!-- NOVO BOTÃO EXCLUIR -->
+                                <form action="/excluir_produto/{{ p.id }}"
+                                      method="POST"
+                                      style="display:inline-block;"
+                                      onsubmit="return confirm('Deseja realmente excluir este produto?');">
+                            
+                                    <button type="submit"
+                                            class="btn btn-sm btn-danger"
+                                            title="Excluir">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            
                             </td>
                         </tr>
                         {% endfor %}
