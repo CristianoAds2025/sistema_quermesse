@@ -348,6 +348,9 @@ def excluir_produto(id):
             conn.close()
             return redirect("/produtos")
 
+        c.execute("DELETE FROM produtos WHERE id = %s", (id,))
+        conn.commit()
+        
         flash("Produto excluído com sucesso!", "success")
 
     except Exception as e:
