@@ -434,22 +434,32 @@ function salvarVenda(){
     let valorRecebido = null;
     let troco = null;
     
-    if(formaSelecionada.value === "Dinheiro"){
-    
-        valorRecebido = parseFloat(document.getElementById("valorRecebido").value);
-    
+  if(formaSelecionada.value === "Dinheiro"){
+
+    const inputValor = document.getElementById("valorRecebido").value;
+
+    if(inputValor !== ""){
+
+        valorRecebido = parseFloat(inputValor);
+
         if(isNaN(valorRecebido)){
-            alert("Informe o valor recebido.");
+            alert("Valor recebido inválido.");
             return;
         }
-    
+
         if(valorRecebido < totalVenda){
             alert("Valor recebido menor que o total da venda.");
             return;
         }
-    
+
         troco = valorRecebido - totalVenda;
+
+    } else {
+        // 🔥 não informou valor → segue normal
+        valorRecebido = null;
+        troco = null;
     }
+}
     
     // 🔥 ABRE JANELA IMEDIATAMENTE (evita bloqueio)
     let janelaImpressao = window.open('', '', 'width=300,height=800');
@@ -526,8 +536,8 @@ function salvarVenda(){
             `Forma de Pagamento: ${data.forma_pagamento}`;
         resumo.appendChild(liPagamento);
         
-        if(data.forma_pagamento === "Dinheiro"){
-        
+        if(data.forma_pagamento === "Dinheiro" && data.valor_recebido !== null){
+
             const liTroco = document.createElement("li");
             liTroco.className = "list-group-item text-success fw-bold";
             liTroco.innerHTML =
@@ -536,7 +546,6 @@ function salvarVenda(){
             resumo.appendChild(liTroco);
         }
 
-    
         window.numeroVendaAtual = data.numero_venda;
         window.dataVendaAtual = data.data_venda;
 
