@@ -111,6 +111,13 @@ title="Visualizar itens">
 <i class="bi bi-list"></i>
 </button>
 
+<button
+class="btn btn-sm btn-dark me-1"
+onclick="imprimirVenda({{ v.numero_venda }})"
+title="Imprimir venda">
+<i class="bi bi-printer"></i>
+</button>    
+
 <form method="post"
 action="/excluir_venda/{{ v.numero_venda }}"
 onsubmit="return confirmarExclusao({{ v.numero_venda }});"
@@ -220,6 +227,40 @@ let modal = new bootstrap.Modal(document.getElementById("modalItens"))
 modal.show()
 
 })
+
+}
+
+function imprimirVenda(numero){
+
+fetch("/itens_venda/" + numero)
+
+.then(r => r.json())
+
+.then(data => {
+
+let itens = [];
+
+data.forEach(item => {
+
+for(let i = 0; i < item.quantidade; i++){
+
+itens.push({
+descricao: item.descricao,
+valor: parseFloat(item.valor_unitario || (
+parseFloat(item.valor_total) / item.quantidade
+)),
+imprime: true
+});
+
+}
+
+});
+
+window.numeroVendaAtual = numero;
+
+imprimirCupom(itens);
+
+});
 
 }    
 
