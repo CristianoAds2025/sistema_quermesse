@@ -232,6 +232,9 @@ modal.show()
 
 function imprimirVenda(numero){
 
+// ABRE A JANELA IMEDIATAMENTE
+let janelaImpressao = window.open('', '', 'width=300,height=800');
+
 fetch("/itens_venda/" + numero)
 
 .then(r => r.json())
@@ -246,9 +249,10 @@ for(let i = 0; i < item.quantidade; i++){
 
 itens.push({
 descricao: item.descricao,
-valor: parseFloat(item.valor_unitario || (
-parseFloat(item.valor_total) / item.quantidade
-)),
+valor: parseFloat(
+item.valor_unitario ||
+(parseFloat(item.valor_total) / item.quantidade)
+),
 imprime: true
 });
 
@@ -258,11 +262,22 @@ imprime: true
 
 window.numeroVendaAtual = numero;
 
-imprimirCupom(itens);
+// CHAMA SUA FUNÇÃO EXISTENTE
+imprimirCupom(itens, janelaImpressao);
+
+})
+
+.catch(() => {
+
+if(janelaImpressao){
+janelaImpressao.close();
+}
+
+alert("Erro ao carregar itens da venda.");
 
 });
 
-}    
+}   
 
 </script>
 
