@@ -1163,7 +1163,8 @@ def itens_venda(numero_venda):
         SELECT 
             p.descricao,
             v.quantidade,
-            v.valor_total
+            v.valor_total,
+            TO_CHAR(v.data_venda, 'DD/MM/YYYY HH24:MI:SS') AS data_venda
         FROM vendas v
         JOIN produtos p ON p.id = v.produto_id
         WHERE v.numero_venda = %s
