@@ -245,14 +245,14 @@ let itens = [];
 
 data.forEach(item => {
 
+const valorUnitario =
+parseFloat(item.valor_total) / parseInt(item.quantidade);
+
 for(let i = 0; i < item.quantidade; i++){
 
 itens.push({
 descricao: item.descricao,
-valor: parseFloat(
-item.valor_unitario ||
-(parseFloat(item.valor_total) / item.quantidade)
-),
+valor: valorUnitario,
 imprime: true
 });
 
@@ -262,12 +262,14 @@ imprime: true
 
 window.numeroVendaAtual = numero;
 
-// CHAMA SUA FUNÇÃO EXISTENTE
+// USA SUA FUNÇÃO JÁ EXISTENTE
 imprimirCupom(itens, janelaImpressao);
 
 })
 
-.catch(() => {
+.catch(error => {
+
+console.error(error);
 
 if(janelaImpressao){
 janelaImpressao.close();
@@ -277,7 +279,7 @@ alert("Erro ao carregar itens da venda.");
 
 });
 
-}   
+}
 
 </script>
 
